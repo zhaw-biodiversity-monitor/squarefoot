@@ -25,8 +25,8 @@
 
 
 ## combine data from two data files
-data_1 <- read.csv("C:/Users/hedd/Documents/Dashboard VegChange Projekt/Squarefoot/Squarefoot code/SqFt_HP_env.csv", sep =";")
-data_2 <- read.csv("C:/Users/hedd/Documents/Dashboard VegChange Projekt/Squarefoot/Squarefoot code/PAG_dDiv.csv", sep=";")
+data_1 <- read.csv("C:/Users/hedd/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/SqFt_HP_env.csv", sep =";")
+data_2 <- read.csv("C:/Users/hedd/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/PAG_dDiv.csv", sep=";")
 
 
 # length(data_1$PAG)
@@ -54,7 +54,7 @@ merged_data_subset <- merged_data[ , !(names(merged_data) %in% c("sla_HP", "heig
                                                                   "dTherophyte", "dGeophyte", "dHemicryptophyte", "dHerbaceous_chamaephyte", "dsla", "dplant_heigt", "dseed_mass"))]
 
 
-write.csv(merged_data, "C:/Users/hedd/Documents/Dashboard VegChange Projekt/Squarefoot/Squarefoot code/squarefoot/Squarefoot_data.csv", row.names = FALSE)
+write.csv(merged_data, "C:/Users/hedd/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/Squarefoot_data.csv", row.names = FALSE)
 
 
 ###########################################################################################
@@ -67,6 +67,15 @@ names(HP_subset) <- substr(names(HP_subset), 1, nchar(names(HP_subset)) - 3) # c
 HP_subset <- cbind(merged_data_subset[ , c("PAG", "Precision", "Center_x_coordinate", "Center_y_coordinate", "Elevation", "Canton", "Municipality")],
                    HP_subset)
 HP_subset["Time"] <- "historic"
+names(HP_subset)[names(HP_subset) == "Richness_method_corr"] <- "Species_richness"
+names(HP_subset)[names(HP_subset) == "T"] <- "Temperature"
+names(HP_subset)[names(HP_subset) == "N"] <- "Nutrient"
+names(HP_subset)[names(HP_subset) == "EM"] <- "Urbanization" # hemeroby (= urbanization)
+names(HP_subset)[names(HP_subset) == "MV"] <- "Moving_tolerance"
+names(HP_subset)[names(HP_subset) == "R"] <- "Reaction"
+names(HP_subset)[names(HP_subset) == "F"] <- "Moisture"
+names(HP_subset)[names(HP_subset) == "L"] <- "Light"
+names(HP_subset)[names(HP_subset) == "Cover_Cyperaceae_Juncaceae"] <- "Cover_Cyp_Junc"
 
 
 
@@ -76,7 +85,17 @@ names(RP_subset) <- substr(names(RP_subset), 1, nchar(names(RP_subset)) - 3) # c
 RP_subset <- cbind(merged_data_subset[ , c("PAG", "Precision", "Center_x_coordinate", "Center_y_coordinate", "Elevation", "Canton", "Municipality")],
                    RP_subset)
 RP_subset["Time"] <- "resurvey"
-# cut off last 3 letters to later overlap datasets
+#rename to match
+names(RP_subset)[names(RP_subset) == "Richness_method_corr"] <- "Species_richness"
+names(RP_subset)[names(RP_subset) == "T"] <- "Temperature"
+names(RP_subset)[names(RP_subset) == "N"] <- "Nutrient"
+names(RP_subset)[names(RP_subset) == "EM"] <- "Urbanization" # hemeroby (= urbanization)
+names(RP_subset)[names(RP_subset) == "MV"] <- "Moving_tolerance"
+names(RP_subset)[names(RP_subset) == "R"] <- "Reaction"
+names(RP_subset)[names(RP_subset) == "F"] <- "Moisture"
+names(RP_subset)[names(RP_subset) == "L"] <- "Light"
+names(RP_subset)[names(RP_subset) == "Cover_Cyperaceae_Juncaceae"] <- "Cover_Cyp_Junc"
+
 
 
 # difference / delta data
@@ -86,25 +105,34 @@ d_subset <- cbind(merged_data_subset[ , c("PAG", "Precision", "Center_x_coordina
                   d_subset)
 d_subset["Time"] <- "delta"
 # rename columns to match the other two datasets
-names(d_subset)[names(d_subset) == "Species_richness"] <- "Richness_method_corr"
-names(d_subset)[names(d_subset) == "Temprature"] <- "T"
-names(d_subset)[names(d_subset) == "Nutrient"] <- "N"
-names(d_subset)[names(d_subset) == "Urbanization"] <- "EM" # hemeroby (= urbanization)
-names(d_subset)[names(d_subset) == "Moving_tolerance"] <- "MV"
-names(d_subset)[names(d_subset) == "Reaction"] <- "R"
-names(d_subset)[names(d_subset) == "Moisture"] <- "F"
-names(d_subset)[names(d_subset) == "Light"] <- "L"
-names(d_subset)[names(d_subset) == "Cover_Cyp_Junc"] <- "Cover_Cyperaceae_Juncaceae"
 names(d_subset)[names(d_subset) == "FD_heigh"] <- "FD_height"
+names(d_subset)[names(d_subset) == "Temprature"] <- "Temperature"
 names(d_subset)[names(d_subset) == "Cover_forb"] <- "Cover_Forb"
 
 
+# names(d_subset)[names(d_subset) == "Species_richness"] <- "Richness_method_corr"
+# names(d_subset)[names(d_subset) == "Temprature"] <- "T"
+# names(d_subset)[names(d_subset) == "Nutrient"] <- "N"
+# names(d_subset)[names(d_subset) == "Urbanization"] <- "EM" # hemeroby (= urbanization)
+# names(d_subset)[names(d_subset) == "Moving_tolerance"] <- "MV"
+# names(d_subset)[names(d_subset) == "Reaction"] <- "R"
+# names(d_subset)[names(d_subset) == "Moisture"] <- "F"
+# names(d_subset)[names(d_subset) == "Light"] <- "L"
+# names(d_subset)[names(d_subset) == "Cover_Cyp_Junc"] <- "Cover_Cyperaceae_Juncaceae"
+# names(d_subset)[names(d_subset) == "FD_heigh"] <- "FD_height"
+# names(d_subset)[names(d_subset) == "Cover_forb"] <- "Cover_Forb"
+
+
 # join all the three datasets
-dataset_total <- rbind(HP_subset, RP_subset, d_subset)
-
-
+#dataset_total <- rbind(HP_subset, RP_subset, d_subset)
 library(dplyr)
 dataset_long <- bind_rows(HP_subset, RP_subset, d_subset)
+
+names(dataset_long)[names(dataset_long) == "PD"] <- "Phylogenetic_diversity"
+names(dataset_long)[names(dataset_long) == "FD"] <- "Functional_diversity"
+names(dataset_long)[names(dataset_long) == "FD_sla"] <- "Funct_div_spec_leaf_area"
+names(dataset_long)[names(dataset_long) == "FD_seed_mass"] <- "Funct_div_seed_mass"
+names(dataset_long)[names(dataset_long) == "FD_height"] <- "Funct_div_height"
 
 ##########################################################################################
 # transform coordinates from the global system (4326) to swiss system (2056 )
@@ -117,7 +145,7 @@ dataset_long$Center_x_coordinate <- st_coordinates(df_swiss)[,1]
 dataset_long$Center_y_coordinate <- st_coordinates(df_swiss)[,2]
 
 
-write.csv(dataset_long,"C:/Users/hedd/Documents/Dashboard VegChange Projekt/Squarefoot/Squarefoot code/squarefoot/Squarefoot_data_long.csv", row.names = FALSE)
+write.csv(dataset_long,"C:/Users/hedd/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/Squarefoot_data_long.csv", row.names = FALSE)
 
 
 #split the dataset into the three time options and put them into a sheet of an xlsx file

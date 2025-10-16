@@ -5,21 +5,55 @@ library("sf")
 library("readxl")
 library("glue")
 library("here")
-setwd("C:/Users/hedd/Documents/Dashboard VegChange Projekt/Squarefoot/Squarefoot code/")
+setwd("C:/Users/hedd/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/")
 
-# theres multiple data to consider: dependent vars are darzustellende variablen
+
+# there is multiple data to consider: dependent vars are darzustellende variablen
 # in aggregate grass is the diversity that is plotted as different colors depending how big they are and how much they changed
 # also in import sheet -> they import  "Grassland_ALLEMA-BDM-WBS_v.6_Biodiversitätsmonitor.xlsx", I need an equivalent
 # sheets <- c(normallandschaft = "Normallandschaft (BDM)", tww = "TWW (WBS)", moore = "Moore (WBS)")
 # drei levels, kann man diese drei optionen dann auf der webseite auswählen - wenn ja,
 # könnte ich diese mit der Zeit hier ersetzen
 
+# was ist der Unterschied von "grassland-data-raw/Grassland_ALLEMA-BDM-WBS_v.6_Biodiversitätsmonitor.xlsx" und 
+# "grassland-data-raw/Dashboard_Resurveys_v.01.xlsx" - wieso zwei files? - bruuch ich BDM? fürs grass_df
+# warum zwei verschiedene files? eine isch ufteilt in moore, normallandschaft und tww, de anderi nöd
 
-# ToDO:
+# was macht aggregate_grass?
+
+# in was für einer form müssen meine daten sein? ich habe sie nun alle in einem file, jedes sheet ist eine 
+# Zeit der drei Auswahlmöglichkeiten.
+
+# was sind diese variablen bei import_sheet?
+
+# was ist das ganze mit "lv95", zb in grass_sf am schluss?
+
+# wenni skript mit resurvey laufe lah chunnt error bi hexagonize:
+# hex10_BGR <- hexagonize(hex10, BGR, DERegionNa)
+# Fehler in geos_op2_geom("intersection", x, y, ...) : 
+#  st_crs(x) == st_crs(y) ist nicht TRUE
+
+# bei aggregate(resurvey_clean, hex10, FUN = mean,na.rm = TRUE)
+# gibt es nur NA weil warnung: In mean.default(X[[i]], ...) :
+# Argument ist weder numerisch noch boolesch: gebe NA zurück
+# es scheind geometry nicht zu erkennen
+
+# brauchen wir die aggregationen kantone x hex10, BGR x hex10 überhaupt?
+
+# wo kommt precision ins spiel? - erst beim app teil und noch nicht bei der preparation?
+
+#was macht design_weight und brauche ich das?
+
+# was macht aggregate_squarefoot und was ist grass_sf am schluss?
+
+
+# TODO:
+# - adjust code from data_preparation zeitreihen?
 # - adjust aggregate_grass
 # - adjust import_sheet
 # - adjust dependent_vars
-#adjust sheets to import
+# - adjust sheets to import
+# - stefan fröge wellli variable wo hi ghöred, bzw welles die dargestellte variable sind
 
 
 
@@ -42,36 +76,41 @@ hexagonize <- function(hex, to_be_hexagonized, ..., .na_omit = TRUE, .do_union =
   return(joined)
 }
 
-aggregate_grass <- function( # adjust columns_to_weight to my data? : ,"Therophyte_prop_HP","Geophyte_prop_HP","Hemicryptophyte_prop_HP",
-  # "Herbaceous_chamaephyte_prop_HP","Richness_method_corr_RP","Simpson_RP"
-  # TD: Taxonomic diversity
-  # PD: Phylogenetic diversity
-  # FD: Functional diversity
+aggregate_grass <- function(
     x, 
     by, 
     weight_col = "design_weight", 
-    columns_to_weight = c("artenreichtum_gefasspflanzen", 
-                          "artenreichtum_neophyten", 
-                          "artenanteil_neophyten",
-                          "deckungsanteil_neophyten", 
-                          "temperaturzahl", 
-                          "kontinentalitatszahl",
-                          "feuchtezahl", 
-                          "reaktionszahl",
-                          "nahrstoffzahl", 
-                          "strategie_c", 
-                          "strategie_r", 
-                          "strategie_s"), 
+    columns_to_weight = c("species_richness",
+                          "phylogenetic_diversity",
+                          "functional_diversity",
+                          "funct_div_spec_leaf_area",
+                          "funct_div_seed_mass",
+                          "funct_div_height",
+                          "temperature",
+                          "nutrient",
+                          "reaction",
+                          "moisture",
+                          "light",
+                          "moving_tolerance",
+                          "urbanization",
+                          "cover_poaceae",
+                          "cover_forb",
+                          "cover_cyp_junc",
+                          "csr_stress_tolerance",
+                          "csr_disturbance_tolerance",
+                          "csr_competitive_ability"), 
     columns_to_count = "_p_a$", # columns matching this ("matches()") will just be counted
     filter_zero_count = TRUE){
   
   # browser()
+
   stopifnot(all(columns_to_weight %in%names(x)))
+
   stopifnot(weight_col %in% names(x))
-  
+
   # create a tidy select that I can use with matches()
   columns_to_weight_tidy_sel <- paste(columns_to_weight, collapse = "|")
-  
+
   # multiply all columns that should be weighed with the weight_col
   weighted <- x[c(weight_col, columns_to_weight)] |>  # select only the weight col and the columns to weigh
     mutate(
@@ -79,13 +118,13 @@ aggregate_grass <- function( # adjust columns_to_weight to my data? : ,"Therophy
         matches(columns_to_weight_tidy_sel),   # for all columns that should be weighed...
         function(z){z*x[[weight_col]]})        # ... multiply by the weigh col
     ) 
-  
+
   weighted_sum <- cbind(
     weighted,                                   
     st_drop_geometry(select(x, matches("_p_a$")))
   ) |> 
     aggregate(by, sum, na.rm = TRUE)
-  
+
   weighted_mean <- weighted_sum |> 
     mutate(
       across(
@@ -93,9 +132,7 @@ aggregate_grass <- function( # adjust columns_to_weight to my data? : ,"Therophy
         function(z){z/weighted_sum[[weight_col]]})
     ) 
   
-  
   weighted_mean$n <- aggregate(transmute(x, n = 1), by, FUN = length) |> st_drop_geometry() |> (\(x) x[,1])()
-  
   weighted_mean <- weighted_mean|> 
     mutate(
       across(
@@ -103,13 +140,12 @@ aggregate_grass <- function( # adjust columns_to_weight to my data? : ,"Therophy
         function(z){z/n}
       )
     )
-  
+
   weighted_mean <- cbind(
     weighted_mean,
     st_drop_geometry(by)
   )
-  
-  
+
   if(filter_zero_count){
     weighted_mean <- weighted_mean[weighted_mean$n>0 & !is.na(weighted_mean$n),]
   }
@@ -120,70 +156,63 @@ import_sheet <- function(xlsx, sheet){
   library(readxl)
   library(janitor)
   library(dplyr)
-  read_excel(xlsx, sheet) |> 
-    janitor::clean_names() |> 
+  read_excel(xlsx, sheet) |>
+    janitor::clean_names() |>
     transmute(
-      plot_id,
-      design_weight, 
-      x_lv95, 
-      y_lv95, 
-      lange, 
-      breite, 
-      meereshohe, 
-      artenreichtum_gefasspflanzen, 
-      artenreichtum_neophyten, 
-      artenanteil_neophyten, 
-      deckungsanteil_neophyten,
-      temperaturzahl,
-      kontinentalitatszahl,
-      feuchtezahl,
-      reaktionszahl,
-      nahrstoffzahl,
-      strategie_c,
-      strategie_r,
-      strategie_s,
-      lolium_multiflorum_p_a,
-      veronica_filiformis_p_a,
-      veronica_persica_p_a,
-      medicago_sativa_p_a,
-      erigeron_annuus_p_a,
-      matricaria_discoidea_p_a,
-      bromus_inermis_p_a,
-      conyza_canadensis_aggr_p_a,
-      impatiens_parviflora_p_a,
-      juncus_tenuis_p_a,
-      solidago_gigantea_p_a,
-      vicia_villosa_p_a
-    ) |> 
-    mutate(
-      across(!ends_with("_p_a"),as.numeric),
-      across(ends_with("_p_a"),as.logical),
-    )
-}
+      pag,
+      time,
+      precision,
+      species_richness,
+      phylogenetic_diversity,
+      functional_diversity,
+      funct_div_spec_leaf_area,
+      funct_div_seed_mass,
+      funct_div_height,
+      temperature,
+      nutrient,
+      reaction,
+      moisture,
+      light,
+      moving_tolerance,
+      urbanization,
+      cover_poaceae,
+      cover_forb,
+      cover_cyp_junc,
+      csr_stress_tolerance,
+      csr_disturbance_tolerance,
+      csr_competitive_ability,
+      x,
+      y,
+      design_weight
+      ) |> 
+     mutate(
+       across(!ends_with("_p_a"),as.numeric),
+       across(ends_with("_p_a"),as.logical),
+     )
+ }
 
 
-squarefoot <- read_csv("C:/Users/hedd/Documents/Dashboard VegChange Projekt/Squarefoot/Squarefoot code/Squarefoot_data_long.csv")
+squarefoot <- read_csv("Squarefoot_data_long.csv")
 
 colnames(squarefoot)
 id_cols <- c("PAG")
-independen_vars <- c("Time")
-dependen_vars <- c("Richness_method_corr",
-                   "Simpson",
-                   "PD",
-                   "FD",
-                   "FD_sla",
-                   "FD_seed_mass",
-                   "FD_height",
-                   "T",
-                   "N",
-                   "R",
-                   "F",
-                   "L",
-                   "MV",
-                   "EM",
+independen_vars <- c("Time","Precision")
+dependen_vars <- c("Species_richness",
+                   "Phylogenetic_diversity",
+                   "Functional_diversity",
+                   "Funct_div_spec_leaf_area",
+                   "Funct_div_seed_mass",
+                   "Funct_div_height",
+                   "Temperature",
+                   "Nutrient",
+                   "Reaction",
+                   "Moisture",
+                   "Light",
+                   "Moving_tolerance",
+                   "Urbanization",
                    "Cover_Poaceae",
                    "Cover_Forb",
-                   "Cover_Cyperaceae_Juncaceae",
+                   "Cover_Cyp_Junc",
                    "CSR_Stress_tolerance",
                    "CSR_Disturbance_tolerance",
                    "CSR_Competitive_ability")
@@ -196,74 +225,94 @@ id_cols %in% colnames(squarefoot) |> all()
 dependen_vars %in% colnames(squarefoot) |> all()
 coordinate_cols %in% colnames(squarefoot) |> all()
 
+
 squarefoot_clean <- squarefoot[,c(id_cols,independen_vars,dependen_vars, coordinate_cols)]  |>
   filter(if_any(matches(coordinate_cols), \(x)!is.na(x))) |>
   st_as_sf(coords = coordinate_cols, crs = 2056) |>
   janitor::clean_names()
 
+# add design_weight
+squarefoot_clean$design_weight <- 1
 
+# categorize time variable to have it numeric
+squarefoot_clean$time <- as.numeric(factor(squarefoot_clean$time)) ########### 1 = delta, 3 = resurvey, 2 = historic 
+
+
+library(writexl)
 cbind(
   st_drop_geometry(squarefoot_clean),
   st_coordinates(squarefoot_clean)
 ) |>
-  write_csv("C:/Users/hedd/Documents/Dashboard VegChange Projekt/Squarefoot/Squarefoot code/sqft.csv")
+  #write_csv("C:/Users/hedd/Documents/Dashboard VegChange Projekt/Squarefoot/Squarefoot code/squarefoot/sqft_clean.csv")
+  write_xlsx("C:/Users/hedd/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/sqft_clean.xlsx")
+# squarefoot_clean <- cbind(
+#   st_drop_geometry(squarefoot_clean),
+#   st_coordinates(squarefoot_clean))
 
-gpkg_path <- "C:/Users/hedd/Documents/Dashboard VegChange Projekt/Squarefoot/Squarefoot code/vectors.gpkg"
+
 
 ## ↳ Prepare Spatial Aggregation Layers
 ################################################################################################################
 # 
-BGR <- read_sf("C:/Users/hedd/Documents/Dashboard VegChange Projekt/Squarefoot/Squarefoot code/biogreg/BiogeographischeRegionen/N2020_Revision_BiogeoRegion.shp") |>
+BGR <- read_sf("C:/Users/hedd/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/biogreg/BiogeographischeRegionen/N2020_Revision_BiogeoRegion.shp") |>
    st_zm() 
  
-kantone <- read_sf("C:/Users/hedd/Documents/Dashboard VegChange Projekt/Squarefoot/Squarefoot code/swissboundaries3d_2022-05_2056_5728.shp/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET.shp") |> 
+kantone <- read_sf("C:/Users/hedd/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/swissboundaries3d_2022-05_2056_5728.shp/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET.shp") |> 
   st_zm() |> 
    select(NAME, KANTONSNUM)
  
-schweiz <- read_sf("C:/Users/hedd/Documents/Dashboard VegChange Projekt/Squarefoot/Squarefoot code/swissboundaries3d_2022-05_2056_5728.shp/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_LANDESGEBIET.shp") |> 
+schweiz <- read_sf("C:/Users/hedd/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/swissboundaries3d_2022-05_2056_5728.shp/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_LANDESGEBIET.shp") |> 
    st_zm() |> 
    filter(NAME != "Liechtenstein") |> 
    st_union()
  
-sheets <- c(normallandschaft = "Normallandschaft (BDM)", tww = "TWW (WBS)", moore = "Moore (WBS)")
- 
-xlsx_path <- "Grassland_ALLEMA-BDM-WBS_v.6_Biodiversitätsmonitor.xlsx"
+#sheets <- c(normallandschaft = "Normallandschaft (BDM)", tww = "TWW (WBS)", moore = "Moore (WBS)")
+sheets <- c(sqft_data = "Sheet1")
+  
+#xlsx_path <- "Grassland_ALLEMA-BDM-WBS_v.6_Biodiversitätsmonitor.xlsx"
+xlsx_path <- "sqft_clean.xlsx"
 #gpkg_path <- "vectors.gpkg"
-# 
+gpkg_path <- "C:/Users/hedd/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/vectors_test.gpkg"
+
 # # delete_all_layers(gpkg_path)
 # # lays <- read_all_layers(gpkg_path)
 
 grass_df <- imap(sheets, \(x,y){import_sheet(xlsx_path, x)})
+#grass_df <- squarefoot_clean
  
  
- 
-grass_sf <- imap(grass_df, ~st_as_sf(.x, coords = c("x_lv95","y_lv95"), crs = 2056, remove = FALSE) )
+grass_sf <- imap(grass_df, ~st_as_sf(.x, coords = c("x","y"), crs = 2056, remove = FALSE) )
 
 
 hex10 <- st_make_grid(schweiz, 10000,square = FALSE) |> st_as_sf() |> mutate(hex10 = row_number())
 hex20 <- st_make_grid(schweiz, 20000,square = FALSE) |> st_as_sf() |> mutate(hex20 = row_number())
  
-BGR <- st_transform(BGR, st_crs(hex10)) ###########################################
+hex10 <- st_transform(hex10, crs = st_crs(BGR))#####################################################
 
 hex10_BGR <- hexagonize(hex10, BGR, DERegionNa)
-
-grass_sf <- map(grass_sf, ~ st_transform(.x, st_crs(hex10_BGR))) #################################
-
-
 hex10_BGR_l <- imap(grass_sf, ~aggregate_grass(.x, hex10_BGR))
 imap(hex10_BGR_l, function(x,y){x |> st_transform(4326) |> 
      write_sf(gpkg_path, glue("hex10_BGR_{y}"),delete_layer = TRUE)})
- 
+
+hex10 <- st_transform(hex10, crs = st_crs(kantone))#####################################################
+
 hex10_kantone <- hexagonize(hex10,kantone, NAME)
+
+hex10_kantone <- st_transform(hex10_kantone, crs = st_crs(BGR))#####################################################
+
 hex10_kantone_l <- imap(grass_sf, ~aggregate_grass(.x, hex10_kantone))
 imap(hex10_kantone_l, function(x,y){x |> st_transform(4326) |> 
     write_sf(gpkg_path, glue("hex10_kantone_{y}"),delete_layer = TRUE)})
+
+hex10 <- st_transform(hex10, crs = st_crs(BGR))#####################################################
  
 hex10_l <- imap(grass_sf, ~aggregate_grass(.x, hex10))
 imap(hex10_l, function(x,y){x |> st_transform(4326) |> 
      write_sf(gpkg_path, glue("hex10_{y}"),delete_layer = TRUE)})
 grass_sf <- map(grass_sf, \(x) st_join(x, hex10))
- 
+
+hex20 <- st_transform(hex20, crs = st_crs(BGR))#####################################################
+
 hex20_l <- imap(grass_sf, ~aggregate_grass(.x, hex20))
 imap(hex20_l, function(x,y){x |> st_transform(4326) |> 
      write_sf(gpkg_path, glue("hex20_{y}"),delete_layer = TRUE)})
@@ -283,38 +332,107 @@ grass_sf <- map(grass_sf, \(x) st_join(x, BGR))
 kantone <- kantone |> 
    group_by(kantone = NAME) |> 
    summarise()
- 
+kantone <- st_transform(kantone, crs = st_crs(BGR))#####################################################
+
 kantone_l <- imap(grass_sf, ~aggregate_grass(.x, kantone))
 imap(kantone_l, function(x,y){x |> st_transform(4326) |> write_sf(gpkg_path, glue("kantone_{y}"),delete_layer = TRUE)})
 grass_sf <- map(grass_sf, \(x) st_join(x, kantone))
  
+
+
+# TODO:
+# only NA get out of the aggregate_squarefoot function
+# aggregate_squarefoot <- function(sqfoot, by){
+#    by_sqfoot <- aggregate(sqfoot, by, FUN = mean,na.rm = TRUE)
+#    by_sqfoot$n <- aggregate(sqfoot[,1], by, FUN = length) |>
+#      st_drop_geometry() |> 
+#      (\(x) x[,1])()
+#    
+#    by_squarefoot
+#  }
+aggregate_squarefoot <- function(sqfoot, by){ ###################################################################
+  # Punkte den Polygonen zuordnen
+  by_sqfoot <- st_join(sqfoot, by, left = FALSE)
+  print(by)
+  # Numerische Spalten aggregieren + n Punkte pro Polygon
+  by_sqfoot <- by_sqfoot %>%
+    group_by(names(by)[2]) %>%                       
+    summarise(
+      across(where(is.numeric), ~ mean(.x, na.rm = TRUE)),
+      n = n()
+    )
+  by_sqfoot
+ }######################################################################################################################################
+
  
-aggregate_resurvey <- function(resuvey, by){
-   by_resuvey <- aggregate(resuvey, by, FUN = mean,na.rm = TRUE)
-   by_resuvey$n <- aggregate(resuvey[,1], by, FUN = length) |>
-     st_drop_geometry() |> 
-     (\(x) x[,1])()
-   
-   by_resuvey
- }
- 
+#troubleshooting
+############################################
 
-squarefoot_clean$time <- as.numeric(factor(squarefoot_clean$time)) ########### 1 = delta, 3 = resurvey, 2 = historic 
-#hex10 <- st_transform(hex10, 2056) #################################################
-hex10 <- st_transform(hex10, st_crs(squarefoot_clean)) #################################################
-hex20 <- st_transform(hex20, st_crs(squarefoot_clean)) #################################################
-BGR <- st_transform(BGR, st_crs(squarefoot_clean)) #################################################
-kantone <- st_transform(kantone, st_crs(squarefoot_clean)) #################################################
+# by_sqfoot_test <- aggregate(squarefoot_clean, hex10, FUN = mean, na.rm = TRUE)
+# sapply(squarefoot_clean, class) #gleicher crs?
+# table(st_within(squarefoot_clean, hex10, sparse = FALSE)) #liegen die datenpunkte innerhalb der polygone?
+# st_bbox(squarefoot_clean)
+# st_bbox(hex10)
+# # Logical Matrix: TRUE, wenn Punkt i in Polygon j liegt
+# within_matrix <- st_within(squarefoot_clean, hex10, sparse = FALSE)
+# 
+# # Anzahl Punkte ohne Zuordnung
+# sum(rowSums(within_matrix) == 0)
+# 
+# hex10_t <- st_transform(hex10, 3857)             #.
+# squarefoot_clean_t <- st_transform(squarefoot_clean, 3857)
+# by_sqfoot_test <- aggregate(squarefoot_clean_t, hex10_t, FUN = mean, na.rm = TRUE)
+# 
+# st_within(squarefoot_clean[1:10,], hex10[1,], sparse = FALSE)
+# library(ggplot2)
+# 
+# ggplot() +
+#   geom_sf(data = hex10, fill = NA, color = "red") +
+#   geom_sf(data = squarefoot_clean, color = "blue", size = 0.5)
+# hex10_buffer <- st_buffer(hex10, 1)  # 1 Einheit Puffern
+# st_within(squarefoot_clean, hex10_buffer, sparse = FALSE)
+# 
+# sum(!st_is_valid(hex10))
+# sum(!st_is_valid(squarefoot_clean))
+# 
+# hex10_t <- st_make_valid(hex10)
+# squarefoot_clean_t <- st_make_valid(squarefoot_clean)
+# st_within(squarefoot_clean_t[1:10,], hex10_t[1,], sparse = FALSE)
+# sum(!st_is_valid(hex10_t))
+# sum(!st_is_valid(squarefoot_clean_t))
+# 
+# joined <- st_join(squarefoot_clean, hex10, left = FALSE)
+# by_sqfoot_test <- joined %>%
+#   group_by(hex10) %>%
+#   summarise(across(where(is.numeric), ~ mean(.x, na.rm = TRUE)))
+# 
+# length(squarefoot_clean$pag)
+# length(by_sqfoot_test$pag)
+# 
+# # Punkte den Polygonen zuordnen
+# joined <- st_join(squarefoot_clean, hex10, left = FALSE)
+# 
+# # Numerische Spalten aggregieren + n Punkte pro Polygon
+# by_sqfoot <- joined %>%
+#   group_by(hex10) %>%                       # Ersetze hex_id ggf. durch die ID-Spalte in 'by'
+#   summarise(
+#     across(where(is.numeric), ~ mean(.x, na.rm = TRUE)),
+#     n = n()
+#   )
 
-hex10_resurvey <- aggregate_resurvey(squarefoot_clean, hex10) |> st_transform(4326)
-hex20_resurvey <- aggregate_resurvey(squarefoot_clean, hex20) |> st_transform(4326)
-bgr_resurvey <- aggregate_resurvey(squarefoot_clean, BGR) |> st_transform(4326)
-kantone_resurvey <- aggregate_resurvey(squarefoot_clean, kantone) |> st_transform(4326)
+################################################
 
-write_sf(hex10_resurvey, gpkg_path, "hex10_resurvey", delete_layer = TRUE)
-write_sf(hex20_resurvey, gpkg_path, "hex20_resurvey", delete_layer = TRUE)
-write_sf(bgr_resurvey, gpkg_path, "bgr_resurvey", delete_layer = TRUE)
-write_sf(kantone_resurvey, gpkg_path, "kantone_resurvey", delete_layer = TRUE)
+
+
+hex10_squarefoot <- aggregate_squarefoot(squarefoot_clean, hex10) |> st_transform(4326)
+hex20_squarefoot <- aggregate_squarefoot(squarefoot_clean, hex20) |> st_transform(4326)
+bgr_squarefoot <- aggregate_squarefoot(squarefoot_clean, BGR) |> st_transform(4326)
+kantone_squarefoot <- aggregate_squarefoot(squarefoot_clean, kantone) |> st_transform(4326)
+
+write_sf(hex10_squarefoot, gpkg_path, "hex10_squarefoot", delete_layer = TRUE)
+write_sf(hex20_squarefoot, gpkg_path, "hex20_squarefoot", delete_layer = TRUE)
+write_sf(bgr_squarefoot, gpkg_path, "bgr_squarefoot", delete_layer = TRUE)
+write_sf(kantone_squarefoot, gpkg_path, "kantone_squarefoot", delete_layer = TRUE)
 
 
 
@@ -327,139 +445,42 @@ layers <- layers |>
 write_sf(layers, gpkg_path, "layers_overview",  delete_layer = TRUE)
 
 
-grass_sf |>
-  imap(\(x,y){
-    x |>
-      select(-ends_with("lv95")) |>
-      mutate(across(c(lange,breite),\(z)round(z,2))) |>
-      st_drop_geometry() |>
-      write_csv(glue("{y}.csv"))
-  })
 
 
 
 
 
 
+# imap(grass_df, ~write_csv(.x, glue("appdata/{.y}.csv")))
+# this following line reduces the precision to 2 decimal places 
+# in WGS84 is about 1'500m (+/- 750m?). With this approach, the 
+# raw data can basically be made publicly accessible (I need to confirm this
+# with deng). It's important to do this rounding on the basis on WGS84 coordinates
+# since the coordinates in 2056 are in some cases already a round number (since
+# they originate from a "grid" placed over Switzerland in 21781 or 2056)
+# grass_sf |> 
+#   imap(\(x,y){
+#     x |> 
+#       select(-ends_with("lv95")) |> 
+#       mutate(across(c(lange,breite),\(z)round(z,2))) |> 
+#       st_drop_geometry() |> 
+#       write_csv(glue("appdata/{y}.csv"))
+#   })
 
 
 
 
-
-
-## ↳ Prepare Spatial Aggregation Layers
-################################################################################################################
-# 
-# hex5 <- st_make_grid(schweiz, 5000, square = FALSE) |>
-#   st_as_sf() |>
-#   mutate(hex5 = row_number())
-# 
-# hex10 <- st_make_grid(schweiz, 10000, square = FALSE) |>
-#   st_as_sf() |>
-#   mutate(hex10 = row_number())
-# 
-# hex20 <- st_make_grid(schweiz, 20000, square = FALSE) |>
-#   st_as_sf() |>
-#   mutate(hex20 = row_number())
-# 
-# #st_crs(hex10)    # check CRS of hex grid
-# #st_crs(BGR)   
-# BGR <- st_transform(BGR, st_crs(hex10)) ###########################################
-# 
-# hex10_BGR <- hexagonize(hex10, BGR, DERegionNa)
-# 
-# BGR <- BGR |>
-#   group_by(bgr = DERegionNa) |>
-#   summarise()
-# 
-# 
-# kantone <- kantone |>
-#   group_by(kantone = NAME) |>
-#   summarise()
-# 
-# 
-# ## ↳ Aggregate BDM to Polygon and export to gpkg
-# grass_sf <- map(grass_sf, ~ st_transform(.x, st_crs(hex10_BGR))) #################################
-# 
-# hex10_BGR_l <- imap(grass_sf, ~ aggregate_grass(.x, hex10_BGR))
-# 
-# imap(hex10_BGR_l, function(x, y) {
-#   x |>
-#     st_transform(4326) |>
-#     write_sf(gpkg_path, glue("hex10_BGR_{y}"), delete_layer = TRUE)
-# })
-# 
-# hex10_kantone <- hexagonize(hex10, kantone)#, NAME) ###################3##########
-# 
-# hex10_kantone_l <- imap(grass_sf, ~ aggregate_grass(.x, hex10_kantone))
-# 
-# imap(hex10_kantone_l, function(x, y) {
-#   x |>
-#     st_transform(4326) |>
-#     write_sf(gpkg_path, glue("hex10_kantone_{y}"), delete_layer = TRUE)
-# })
-# 
-# hex10_l <- imap(grass_sf, ~ aggregate_grass(.x, hex10))
-# 
-# imap(hex10_l, function(x, y) {
-#   x |>
-#     st_transform(4326) |>
-#     write_sf(gpkg_path, glue("hex10_{y}"), delete_layer = TRUE)
-# })
-# grass_sf <- map(grass_sf, \(x) st_join(x, hex10))
-# 
-# hex20_l <- imap(grass_sf, ~ aggregate_grass(.x, hex20))
-# 
-# imap(hex20_l, function(x, y) {
-#   x |>
-#     st_transform(4326) |>
-#     write_sf(gpkg_path, glue("hex20_{y}"), delete_layer = TRUE)
-# })
-# grass_sf <- map(grass_sf, \(x) st_join(x, hex20))
-# 
-# 
-# BGR_l <- imap(grass_sf, ~ aggregate_grass(.x, BGR))
-# 
-# imap(BGR_l, function(x, y) {
-#   x |>
-#     st_transform(4326) |>
-#     write_sf(gpkg_path, glue("BGR_{y}"), delete_layer = TRUE)
-# })
-# 
-# grass_sf <- map(grass_sf, \(x) st_join(x, BGR))
-# 
-# 
-# 
-# kantone_l <- imap(grass_sf, ~ aggregate_grass(.x, kantone))
-# 
-# imap(kantone_l, function(x, y) {
-#   x |>
-#     st_transform(4326) |>
-#     write_sf(gpkg_path, glue("kantone_{y}"), delete_layer = TRUE)
-# })
-# 
-# grass_sf <- map(grass_sf, \(x) st_join(x, kantone))
-# 
-# layers <- tibble(layer_name = st_layers(gpkg_path)$name)
-# 
-# layers <- layers |>
-#   extract(layer_name, c("aggregation", "dataset"), "(\\w+)_(\\w+)", remove = FALSE) |>
-#   separate(aggregation, c("aggregation1", "aggregation2"), sep = "_", fill = "right")
-# 
-# write_sf(layers, gpkg_path, "layers_overview")
-# 
-# 
-# ## ↳ Resurvey: Aggregate Data to Polygon and export to gpkg
+# ## ↳ squarefoot: Aggregate Data to Polygon and export to gpkg
 # 
 # threshold <- read_xlsx("tmp_resurvey_2025-01_annual_trends_threshold_definitions.xlsx", "Schwellenwerte")
 
 # 
-# hex10_resurvey <- aggregate_resurvey(resurvey_smry, vals, hex10) |> 
+# hex10_squarefoot <- aggregate_squarefoot(squarefoot_smry, vals, hex10) |> 
 #   st_transform(4326) |> 
 #   filter(!is.na(n))
 # 
 # 
-# # hex10_resurvey[,!(colnames(hex10_resurvey) %in% threshold$Parameter)]
+# # hex10_squarefoot[,!(colnames(hex10_squarefoot) %in% threshold$Parameter)]
 # # 
 # # threshold_long <- threshold |>
 # #   pivot_longer(-Parameter)
@@ -468,43 +489,43 @@ grass_sf |>
 # #   browser()
 # # 
 # #   thr <- pivot_longer(threshold[threshold$Parameter == x, ], -Parameter)
-# #   cut(hex10_resurvey[,x, drop = TRUE], c(-Inf, thr$value))
+# #   cut(hex10_squarefoot[,x, drop = TRUE], c(-Inf, thr$value))
 # # })
 # 
 # 
 
 # 
-# hex20_resurvey <- aggregate_resurvey(resurvey_smry, vals, hex20) |> 
+# hex20_squarefoot <- aggregate_squarefoot(squarefoot_smry, vals, hex20) |> 
 #   st_transform(4326) |> 
 #   filter(!is.na(n))
 # 
-# bgr_resurvey <- aggregate_resurvey(resurvey_smry, vals, BGR) |> 
+# bgr_squarefoot <- aggregate_squarefoot(squarefoot_smry, vals, BGR) |> 
 #   st_transform(4326) |> 
 #   filter(!is.na(n))
 # 
-# kantone_resurvey <- aggregate_resurvey(resurvey_smry, vals, kantone) |> 
+# kantone_squarefoot <- aggregate_squarefoot(squarefoot_smry, vals, kantone) |> 
 #   st_transform(4326) |> 
 #   filter(!is.na(n))
 
 # 
 # 
-# if(file.exists(gpkg_path_resurvey))file.remove(gpkg_path_resurvey)
-# write_sf(hex10_resurvey, gpkg_path_resurvey, "hex10", delete_layer = TRUE)
-# write_sf(hex20_resurvey, gpkg_path_resurvey, "hex20", delete_layer = TRUE)
-# write_sf(bgr_resurvey, gpkg_path_resurvey, "bgr", delete_layer = TRUE)
-# write_sf(kantone_resurvey, gpkg_path_resurvey, "kantone", delete_layer = TRUE)
+# if(file.exists(gpkg_path_squarefoot))file.remove(gpkg_path_squarefoot)
+# write_sf(hex10_squarefoot, gpkg_path_squarefoot, "hex10", delete_layer = TRUE)
+# write_sf(hex20_squarefoot, gpkg_path_squarefoot, "hex20", delete_layer = TRUE)
+# write_sf(bgr_squarefoot, gpkg_path_squarefoot, "bgr", delete_layer = TRUE)
+# write_sf(kantone_squarefoot, gpkg_path_squarefoot, "kantone", delete_layer = TRUE)
 # 
-# resurvey_smry |> 
+# squarefoot_smry |> 
 #   st_transform(4326) |>
-#   write_sf(gpkg_path_resurvey, "punkte", delete_layer = TRUE)
+#   write_sf(gpkg_path_squarefoot, "punkte", delete_layer = TRUE)
 # 
 # 
-# layers <- tibble(layer_name = st_layers(gpkg_path_resurvey)$name)
+# layers <- tibble(layer_name = st_layers(gpkg_path_squarefoot)$name)
 # 
 # cbind(
-#   st_drop_geometry(resurvey_smry),
-#   st_coordinates(resurvey_smry)
+#   st_drop_geometry(squarefoot_smry),
+#   st_coordinates(squarefoot_smry)
 # ) |>
-#   write_csv("appdata/resurvey.csv")
+#   write_csv("appdata/squarefoot.csv")
 # 
 

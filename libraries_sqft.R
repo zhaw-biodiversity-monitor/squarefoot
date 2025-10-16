@@ -1,0 +1,20 @@
+library("shiny")
+library("sf")
+library("readr")
+library("sf")
+library("leaflet")
+library("ggplot2")
+library("dplyr")
+# install.packages("leaflet.extras")
+library("leaflet.extras")
+library("plotly")
+library("htmltools") # for htmlEscape
+library("tidyr")
+library("purrr")
+library("stringr")
+library("classInt")
+library("bslib")
+
+# install.packages("shinyWidgets")
+library(shinyWidgets)
+
