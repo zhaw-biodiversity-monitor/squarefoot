@@ -1,15 +1,12 @@
-source("libraries_sqft.R")
-source("config_sqft.R")
-source("utils_sqft.R")
-source("map_module_sqft.R")
-source("data_module_sqft.R")
-
-# have a look at environment vars and adjust them (mainly configs)
-# take code also from zeitreihen to have the three categories Lebensraumgruppen
+source("libraries.R")
+source("config.R")
+source("utils.R")
+source("map_module.R")
+source("data_module.R")
 
 # Load initial data
 geodata <- load_geodata()
-dataset_list <- load_dataset_info()
+#dataset_list <- load_dataset_info()
 
 shinyServer(function(input, output) {
   # Initialize map
@@ -27,7 +24,7 @@ shinyServer(function(input, output) {
   # })
   
   # Store the currently selected dataset ID
-  selected_dataset_id <- reactiveVal(NULL)
+  #selected_dataset_id <- reactiveVal(NULL)
   
   # Create color palette
   # color_palette <- reactive({
@@ -51,9 +48,9 @@ shinyServer(function(input, output) {
   filtered_data <- reactive({
     filter_data(
       geodata_i(),
-      input$dataset,
-      input$lebensraumgruppen,
-      input$flaeche
+      #input$dataset,
+      input$time_a
+      #input$flaeche
     )
   })
   
@@ -118,10 +115,10 @@ shinyServer(function(input, output) {
   observeEvent(input$map_marker_click, {
     if (input$aggregation == "punkte") {
       click <- input$map_marker_click
-      dataset_id <- click$id
+      #dataset_id <- click$id
       
       # Update selected dataset ID
-      selected_dataset_id(dataset_id)
+      #selected_dataset_id(dataset_id)
       
       # Get current data
       # filtered_data <- filter_data(
@@ -132,7 +129,7 @@ shinyServer(function(input, output) {
       # )
       
       # Filter points with same dataset ID
-      highlight_data <- filtered_data()[filtered_data()$dataset_id == dataset_id, ]
+      #highlight_data <- filtered_data()[filtered_data()$  dataset_id == dataset_id, ]
       
       # browser()
       
@@ -153,7 +150,7 @@ shinyServer(function(input, output) {
   
   # Clear highlights when aggregation changes
   observeEvent(input$aggregation, {
-    selected_dataset_id(NULL)
+    #selected_dataset_id(NULL)
     leafletProxy("map") |>
       clearGroup("highlight_points")
   })

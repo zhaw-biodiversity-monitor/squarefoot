@@ -1,74 +1,27 @@
 
+setwd("C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/") #yaelh und hedd 
 
-library("tidyverse")
-library("sf")
-library("readxl")
-library("glue")
-library("here")
-setwd("C:/Users/hedd/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/")
+################################################################################################################
+## Load Libraries and construct funtions
+################################################################################################################
 
+library(tidyverse)
+library(sf)
+library(readxl)
+library(glue)
 
-# there is multiple data to consider: dependent vars are darzustellende variablen
-# in aggregate grass is the diversity that is plotted as different colors depending how big they are and how much they changed
-# also in import sheet -> they import  "Grassland_ALLEMA-BDM-WBS_v.6_Biodiversitätsmonitor.xlsx", I need an equivalent
-# sheets <- c(normallandschaft = "Normallandschaft (BDM)", tww = "TWW (WBS)", moore = "Moore (WBS)")
-# drei levels, kann man diese drei optionen dann auf der webseite auswählen - wenn ja,
-# könnte ich diese mit der Zeit hier ersetzen
-
-# was ist der Unterschied von "grassland-data-raw/Grassland_ALLEMA-BDM-WBS_v.6_Biodiversitätsmonitor.xlsx" und 
-# "grassland-data-raw/Dashboard_Resurveys_v.01.xlsx" - wieso zwei files? - bruuch ich BDM? fürs grass_df
-# warum zwei verschiedene files? eine isch ufteilt in moore, normallandschaft und tww, de anderi nöd
-
-# was macht aggregate_grass?
-
-# in was für einer form müssen meine daten sein? ich habe sie nun alle in einem file, jedes sheet ist eine 
-# Zeit der drei Auswahlmöglichkeiten.
-
-# was sind diese variablen bei import_sheet?
-
-# was ist das ganze mit "lv95", zb in grass_sf am schluss?
-
-# wenni skript mit resurvey laufe lah chunnt error bi hexagonize:
-# hex10_BGR <- hexagonize(hex10, BGR, DERegionNa)
-# Fehler in geos_op2_geom("intersection", x, y, ...) : 
-#  st_crs(x) == st_crs(y) ist nicht TRUE
-
-# bei aggregate(resurvey_clean, hex10, FUN = mean,na.rm = TRUE)
-# gibt es nur NA weil warnung: In mean.default(X[[i]], ...) :
-# Argument ist weder numerisch noch boolesch: gebe NA zurück
-# es scheind geometry nicht zu erkennen
-
-# brauchen wir die aggregationen kantone x hex10, BGR x hex10 überhaupt?
-
-# wo kommt precision ins spiel? - erst beim app teil und noch nicht bei der preparation?
-
-#was macht design_weight und brauche ich das?
-
-# was macht aggregate_squarefoot und was ist grass_sf am schluss?
-
-
-# TODO:
-# - adjust code from data_preparation zeitreihen?
-# - adjust aggregate_grass
-# - adjust import_sheet
-# - adjust dependent_vars
-# - adjust sheets to import
-# - stefan fröge wellli variable wo hi ghöred, bzw welles die dargestellte variable sind
-
-
-
-read_all_layers <- function(file){
-  sapply(st_layers(file)$name, \(x)st_read(file, x),simplify = FALSE) 
+read_all_layers <- function(file) {
+  sapply(st_layers(file)$name, \(x)st_read(file, x), simplify = FALSE)
 }
 
-delete_all_layers <- function(file){
-  sapply(st_layers(file)$name, \(x)st_delete(file, x),simplify = FALSE) 
+delete_all_layers <- function(file) {
+  sapply(st_layers(file)$name, \(x)st_delete(file, x), simplify = FALSE)
 }
 
-hexagonize <- function(hex, to_be_hexagonized, ..., .na_omit = TRUE, .do_union = TRUE){
+hexagonize <- function(hex, to_be_hexagonized, ..., .na_omit = TRUE, .do_union = TRUE) {
   joined <- st_join(hex, select(to_be_hexagonized, ...), largest = TRUE)
-  if(.na_omit) joined <- na.omit(joined)
-  if(.do_union){
+  if (.na_omit) joined <- na.omit(joined)
+  if (.do_union) {
     joined <- joined %>%
       group_by(...) %>%
       summarise()
@@ -77,67 +30,61 @@ hexagonize <- function(hex, to_be_hexagonized, ..., .na_omit = TRUE, .do_union =
 }
 
 aggregate_grass <- function(
-    x, 
-    by, 
-    weight_col = "design_weight", 
-    columns_to_weight = c("species_richness",
-                          "phylogenetic_diversity",
-                          "functional_diversity",
-                          "funct_div_spec_leaf_area",
-                          "funct_div_seed_mass",
-                          "funct_div_height",
-                          "temperature",
-                          "nutrient",
-                          "reaction",
-                          "moisture",
-                          "light",
-                          "moving_tolerance",
-                          "urbanization",
-                          "cover_poaceae",
-                          "cover_forb",
-                          "cover_cyp_junc",
-                          "csr_stress_tolerance",
-                          "csr_disturbance_tolerance",
-                          "csr_competitive_ability"), 
+    x,
+    by,
+    weight_col = "design_weight",
+    columns_to_weight = c("artenreichtum_gefasspflanzen", "artenreichtum_neophyten", "artenanteil_neophyten", "deckungsanteil_neophyten", "temperaturzahl", "kontinentalitatszahl", "feuchtezahl", "reaktionszahl", "nahrstoffzahl", "strategie_c", "strategie_r", "strategie_s"),
     columns_to_count = "_p_a$", # columns matching this ("matches()") will just be counted
-    filter_zero_count = TRUE){
+    filter_zero_count = TRUE) {
+  ## Checks
   
   # browser()
-  
-  stopifnot(all(columns_to_weight %in%names(x)))
-  
+  stopifnot(all(columns_to_weight %in% names(x)))
   stopifnot(weight_col %in% names(x))
   
   # create a tidy select that I can use with matches()
   columns_to_weight_tidy_sel <- paste(columns_to_weight, collapse = "|")
   
   # multiply all columns that should be weighed with the weight_col
-  weighted <- x[c(weight_col, columns_to_weight)] |>  # select only the weight col and the columns to weigh
+  weighted <- x[c(weight_col, columns_to_weight)] |> # select only the weight col and the columns to weigh
     mutate(
       across(
-        matches(columns_to_weight_tidy_sel),   # for all columns that should be weighed...
-        function(z){z*x[[weight_col]]})        # ... multiply by the weigh col
-    ) 
+        matches(columns_to_weight_tidy_sel), # for all columns that should be weighed...
+        function(z) {
+          z * x[[weight_col]]
+        }
+      ) # ... multiply by the weigh col
+    )
   
   weighted_sum <- cbind(
-    weighted,                                   
+    weighted,
     st_drop_geometry(select(x, matches("_p_a$")))
-  ) |> 
+  ) |>
     aggregate(by, sum, na.rm = TRUE)
   
-  weighted_mean <- weighted_sum |> 
+  weighted_mean <- weighted_sum |>
     mutate(
       across(
-        matches(columns_to_weight_tidy_sel), 
-        function(z){z/weighted_sum[[weight_col]]})
-    ) 
+        matches(columns_to_weight_tidy_sel),
+        function(z) {
+          z / weighted_sum[[weight_col]]
+        }
+      )
+    )
   
-  weighted_mean$n <- aggregate(transmute(x, n = 1), by, FUN = length) |> st_drop_geometry() |> (\(x) x[,1])()
-  weighted_mean <- weighted_mean|> 
+  # agg_fun <- aggregate(x_weighted, by, FUN = FUN)
+  # agg_fun$n <-
+  weighted_mean$n <- aggregate(transmute(x, n = 1), by, FUN = length) |>
+    st_drop_geometry() |>
+    (\(x) x[, 1])()
+  
+  weighted_mean <- weighted_mean |>
     mutate(
       across(
         ends_with("_p_a"),
-        function(z){z/n}
+        function(z) {
+          z / n
+        }
       )
     )
   
@@ -146,51 +93,106 @@ aggregate_grass <- function(
     st_drop_geometry(by)
   )
   
-  if(filter_zero_count){
-    weighted_mean <- weighted_mean[weighted_mean$n>0 & !is.na(weighted_mean$n),]
+  
+  if (filter_zero_count) {
+    weighted_mean <- weighted_mean[weighted_mean$n > 0 & !is.na(weighted_mean$n), ]
   }
   weighted_mean
 }
 
-import_sheet <- function(xlsx, sheet){
+aggregate_resurvey <- function(resurvey, vals, by){
+  
+  # browser()
+  resurvey_vals <- resurvey |> 
+    ungroup() |> 
+    (\(x)x[,vals])()
+  
+  by_resurvey <- aggregate(resurvey_vals, by, FUN = mean,na.rm = TRUE)
+  
+  
+  # i <- seq_len(nrow(by_resurvey))
+  # by_resurvey_geom <- st_geometry(by_resurvey) |> st_sf()
+  # by_resurvey_geom$i <- i
+  # st_geometry(by_resurvey_geom) <- "geom"
+  # 
+  # by_resurvey_vals <- st_drop_geometry(by_resurvey)
+  # by_resurvey_vals$i <- i
+  # 
+  # by_resurvey_lng <- pivot_longer(by_resurvey_vals, -i)
+  # 
+  # threshold_lng <- pivot_longer(threshold, -Parameter)
+  # 
+  # left_join(by_resurvey_lng, threshold_lng, by = c(name = "Parameter"), relationship = "many-to-many") |> 
+  #   filter()
+  
+  
+  
+  
+  by_resurvey$n <- aggregate(resurvey[,1], by, FUN = length) |>
+    st_drop_geometry() |> 
+    (\(x) x[,1])()
+  
+  cbind(by_resurvey, st_drop_geometry(by))
+}
+
+aggregate_infoflora <- function(resurvey, vals, by){
+  
+  resurvey_vals <- resurvey |> 
+    ungroup() |> 
+    (\(x)x[,vals])()
+  
+  by_resurvey <- aggregate(resurvey_vals, by, FUN = mean,na.rm = TRUE)
+  by_resurvey$n <- aggregate(resurvey[,1], by, FUN = length) |>
+    st_drop_geometry() |> 
+    (\(x) x[,1])()
+  
+  cbind(by_resurvey, st_drop_geometry(by))
+}
+
+import_sheet <- function(xlsx, sheet) {
   library(readxl)
   library(janitor)
   library(dplyr)
   read_excel(xlsx, sheet) |>
     janitor::clean_names() |>
     transmute(
-      pag,
-      time,
-      precision,
-      species_richness,
-      phylogenetic_diversity,
-      functional_diversity,
-      funct_div_spec_leaf_area,
-      funct_div_seed_mass,
-      funct_div_height,
-      temperature,
-      nutrient,
-      reaction,
-      moisture,
-      light,
-      moving_tolerance,
-      urbanization,
-      cover_poaceae,
-      cover_forb,
-      cover_cyp_junc,
-      csr_stress_tolerance,
-      csr_disturbance_tolerance,
-      csr_competitive_ability,
-      x,
-      y,
-      design_weight
-    ) |> 
+      plot_id,
+      design_weight,
+      x_lv95,
+      y_lv95,
+      lange,
+      breite,
+      meereshohe,
+      artenreichtum_gefasspflanzen,
+      artenreichtum_neophyten,
+      artenanteil_neophyten,
+      deckungsanteil_neophyten,
+      temperaturzahl,
+      kontinentalitatszahl,
+      feuchtezahl,
+      reaktionszahl,
+      nahrstoffzahl,
+      strategie_c,
+      strategie_r,
+      strategie_s,
+      lolium_multiflorum_p_a,
+      veronica_filiformis_p_a,
+      veronica_persica_p_a,
+      medicago_sativa_p_a,
+      erigeron_annuus_p_a,
+      matricaria_discoidea_p_a,
+      bromus_inermis_p_a,
+      conyza_canadensis_aggr_p_a,
+      impatiens_parviflora_p_a,
+      juncus_tenuis_p_a,
+      solidago_gigantea_p_a,
+      vicia_villosa_p_a
+    ) |>
     mutate(
-      across(!ends_with("_p_a"),as.numeric),
-      across(ends_with("_p_a"),as.logical),
+      across(!ends_with("_p_a"), as.numeric),
+      across(ends_with("_p_a"), as.logical),
     )
 }
-
 
 
 ################################################################################################################
@@ -201,16 +203,16 @@ import_sheet <- function(xlsx, sheet){
 ## ↳ Generic Geodata
 ################################################################################################################
 
-BGR <- read_sf("data-raw/biogreg/BiogeographischeRegionen/N2020_Revision_BiogeoRegion.shp") |>
+BGR <- read_sf("biogreg/BiogeographischeRegionen/N2020_Revision_BiogeoRegion.shp") |>
   st_zm()
 
 
-kantone <- read_sf("data-raw/swissboundaries3d_2022-05_2056_5728.shp/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET.shp") |>
+kantone <- read_sf("swissboundaries3d_2022-05_2056_5728.shp/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET.shp") |>
   st_zm() |>
   select(NAME, KANTONSNUM) |>
   st_set_crs(2056)
 
-schweiz <- read_sf("data-raw/swissboundaries3d_2022-05_2056_5728.shp/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_LANDESGEBIET.shp") |>
+schweiz <- read_sf("swissboundaries3d_2022-05_2056_5728.shp/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_LANDESGEBIET.shp") |>
   st_zm() |>
   filter(NAME != "Liechtenstein") |>
   st_union() |>
@@ -218,45 +220,22 @@ schweiz <- read_sf("data-raw/swissboundaries3d_2022-05_2056_5728.shp/SHAPEFILE_L
 
 
 
-## ↳ BDM (BioDiversityMonitor) Data
-################################################################################################################
-
-sheets <- c(
-  normallandschaft = "Normallandschaft (BDM)"
-  # tww = "TWW (WBS)",
-  # moore = "Moore (WBS)"
-)
-
-xlsx_path <- "data-raw/Grassland_ALLEMA-BDM-WBS_v.6_Biodiversitätsmonitor.xlsx"
-gpkg_path <- "appdata/vectors.gpkg"
-
-
-# delete_all_layers(gpkg_path)
-# lays <- read_all_layers(gpkg_path)
-
-grass_df <- imap(sheets, \(x, y){
-  import_sheet(xlsx_path, x)
-})
-
-
-
-grass_sf <- imap(grass_df, ~ st_as_sf(.x, coords = c("x_lv95", "y_lv95"), crs = 2056, remove = FALSE))
-
 
 
 ## ↳ Resurvey Data
 ################################################################################################################
 
+# output
+gpkg_path_resurvey <- "vectors_resurvey_test.gpkg"
 
 
+resurvey <- read_csv("Squarefoot_data_long.csv")
+#resurvey$dataset_id <- as.numeric(factor(resurvey$Time)) ########### 1 = delta, 3 = resurvey, 2 = historic 
+#resurvey$Lebensraumgruppe <- resurvey$Time 
 
-
-squarefoot <- read_csv("Squarefoot_data_long.csv")
-
-colnames(squarefoot)
 id_cols <- c("PAG")
-independen_vars <- c("Time","Precision")
-dependen_vars <- c("Species_richness",
+independent_vars <- c("Time","Precision")#, "Lebensraumgruppe") #dataset_id
+dependent_vars <- c("Species_richness",
                    "Phylogenetic_diversity",
                    "Functional_diversity",
                    "Funct_div_spec_leaf_area",
@@ -275,79 +254,21 @@ dependen_vars <- c("Species_richness",
                    "CSR_Stress_tolerance",
                    "CSR_Disturbance_tolerance",
                    "CSR_Competitive_ability")
-coordinate_cols <- c("Center_x_coordinate", "Center_y_coordinate")
-
-
-id_cols %in% colnames(squarefoot) |> all()
-independen_vars %in% colnames(squarefoot) |> all()
-id_cols %in% colnames(squarefoot) |> all()
-dependen_vars %in% colnames(squarefoot) |> all()
-coordinate_cols %in% colnames(squarefoot) |> all()
-
-
-squarefoot_clean <- squarefoot[,c(id_cols,independen_vars,dependen_vars, coordinate_cols)]  |>
-  filter(if_any(matches(coordinate_cols), \(x)!is.na(x))) |>
-  st_as_sf(coords = coordinate_cols, crs = 2056) |>
-  janitor::clean_names()
-
-# add design_weight
-squarefoot_clean$design_weight <- 1
-
-# categorize time variable to have it numeric
-squarefoot_clean$time <- as.numeric(factor(squarefoot_clean$time)) ########### 1 = delta, 3 = resurvey, 2 = historic 
-
-
-library(writexl)
-cbind(
-  st_drop_geometry(squarefoot_clean),
-  st_coordinates(squarefoot_clean)
-) |>
-  #write_csv("C:/Users/hedd/Documents/Dashboard VegChange Projekt/Squarefoot/Squarefoot code/squarefoot/sqft_clean.csv")
-  write_xlsx("C:/Users/hedd/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/sqft_clean.xlsx")
-# squarefoot_clean <- cbind(
-#   st_drop_geometry(squarefoot_clean),
-#   st_coordinates(squarefoot_clean))
-
-
-
-## ↳ Prepare Spatial Aggregation Layers
-################################################################################################################
-# 
-BGR <- read_sf("C:/Users/hedd/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/biogreg/BiogeographischeRegionen/N2020_Revision_BiogeoRegion.shp") |>
-  st_zm() 
-
-kantone <- read_sf("C:/Users/hedd/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/swissboundaries3d_2022-05_2056_5728.shp/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET.shp") |> 
-  st_zm() |> 
-  select(NAME, KANTONSNUM)
-
-schweiz <- read_sf("C:/Users/hedd/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/swissboundaries3d_2022-05_2056_5728.shp/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_LANDESGEBIET.shp") |> 
-  st_zm() |> 
-  filter(NAME != "Liechtenstein") |> 
-  st_union()
-
-#sheets <- c(normallandschaft = "Normallandschaft (BDM)", tww = "TWW (WBS)", moore = "Moore (WBS)")
-sheets <- c(sqft_data = "Sheet1")
-
-#xlsx_path <- "Grassland_ALLEMA-BDM-WBS_v.6_Biodiversitätsmonitor.xlsx"
-xlsx_path <- "sqft_clean.xlsx"
-#gpkg_path <- "vectors.gpkg"
-gpkg_path <- "C:/Users/hedd/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/vectors_test.gpkg"
+coordinate_cols <- c("Center_x_coordinate", "Center_y_coordinate") #2056? or 4326?
 
 
 
 
+# Quality Checks
+stopifnot(id_cols %in% colnames(resurvey) |> all())
+stopifnot(independent_vars %in% colnames(resurvey) |> all())
+stopifnot(dependent_vars %in% colnames(resurvey) |> all())
+stopifnot(coordinate_cols %in% colnames(resurvey) |> all())
 
 
 
 
-
-
-
-
-
-
-
-
+# Quality checks?
 
 
 
@@ -388,88 +309,160 @@ kantone <- kantone |>
   summarise()
 
 
-## ↳ Aggregate BDM to Polygon and export to gpkg
-################################################################################################################
-
-#dir.create("appdata")
-
-
-
-hex10_BGR_l <- imap(grass_sf, ~ aggregate_grass(.x, hex10_BGR))
-
-imap(hex10_BGR_l, function(x, y) {
-  x |>
-    st_transform(4326) |>
-    write_sf(gpkg_path, glue("hex10_BGR_{y}"), delete_layer = TRUE)
-})
-
-hex10_kantone <- hexagonize(hex10, kantone, NAME)
-
-hex10_kantone_l <- imap(grass_sf, ~ aggregate_grass(.x, hex10_kantone))
-
-imap(hex10_kantone_l, function(x, y) {
-  x |>
-    st_transform(4326) |>
-    write_sf(gpkg_path, glue("hex10_kantone_{y}"), delete_layer = TRUE)
-})
-
-hex10_l <- imap(grass_sf, ~ aggregate_grass(.x, hex10))
-
-imap(hex10_l, function(x, y) {
-  x |>
-    st_transform(4326) |>
-    write_sf(gpkg_path, glue("hex10_{y}"), delete_layer = TRUE)
-})
-grass_sf <- map(grass_sf, \(x) st_join(x, hex10))
-
-hex20_l <- imap(grass_sf, ~ aggregate_grass(.x, hex20))
-
-imap(hex20_l, function(x, y) {
-  x |>
-    st_transform(4326) |>
-    write_sf(gpkg_path, glue("hex20_{y}"), delete_layer = TRUE)
-})
-grass_sf <- map(grass_sf, \(x) st_join(x, hex20))
-
-
-BGR_l <- imap(grass_sf, ~ aggregate_grass(.x, BGR))
-
-imap(BGR_l, function(x, y) {
-  x |>
-    st_transform(4326) |>
-    write_sf(gpkg_path, glue("BGR_{y}"), delete_layer = TRUE)
-})
-
-grass_sf <- map(grass_sf, \(x) st_join(x, BGR))
-
-
-
-kantone_l <- imap(grass_sf, ~ aggregate_grass(.x, kantone))
-
-imap(kantone_l, function(x, y) {
-  x |>
-    st_transform(4326) |>
-    write_sf(gpkg_path, glue("kantone_{y}"), delete_layer = TRUE)
-})
-
-grass_sf <- map(grass_sf, \(x) st_join(x, kantone))
-
-layers <- tibble(layer_name = st_layers(gpkg_path)$name)
-
-layers <- layers |>
-  extract(layer_name, c("aggregation", "dataset"), "(\\w+)_(\\w+)", remove = FALSE) |>
-  separate(aggregation, c("aggregation1", "aggregation2"), sep = "_", fill = "right")
-
-write_sf(layers, gpkg_path, "layers_overview")
 
 
 ## ↳ Resurvey: Aggregate Data to Polygon and export to gpkg
 ################################################################################################################
+resurvey <- resurvey[,c(id_cols,independent_vars,dependent_vars, coordinate_cols)]  |>
+  filter(if_any(matches(coordinate_cols), \(x)!is.na(x))) |>
+  st_as_sf(coords = coordinate_cols, crs = 2056) |>
+  janitor::clean_names()
 
-threshold <- read_xlsx("data-raw/tmp_resurvey_2025-01_annual_trends_threshold_definitions.xlsx", "Schwellenwerte")
+
+# 
+# names(resurvey)
+# resurvey_sf <- resurvey |> 
+#   imap_dfr(\(x,y){
+#     st_as_sf(x, coords = c("Center_x_coordinate","Center_y_coordinate"), crs = as.integer(y)) |> 
+#       st_transform(2056)
+#   })
+# 
+# 
+# resurvey_clean <- resurvey_sf[,c(id_cols, independen_vars, dependen_vars)] |> 
+#   janitor::clean_names()
+# 
+# resurvey_clean <- cbind(resurvey_clean, st_coordinates(resurvey_clean)) |> 
+#   st_drop_geometry()
+# 
+# # making all 
+# # vals <- colnames(resurvey_clean) |> tail(-8) |> head(-1)
+# vals <- c("artenzahl","relative_artenzahl","shannon_index", "shannon_evenness", "temperaturzahl", "kontinentalitatszahl", "lichtzahl", "feuchtezahl",  "reaktionszahl", "nahrstoffzahl", "humuszahl", "konkurrenzzahl", "ruderalzahl", "stresszahl", "mahdvertraglichkeit")
+# 
+# resurvey_clean <- resurvey_clean |> 
+#   arrange(unique_plot_id, jahr)
+# 
+# 
+# # Quality Check: Are there plots for which we only have one survey?
+# # https://github.com/zhaw-biodiversity-monitor/zhaw-biodiversity-monitor.github.io/issues/11
+# resurvey_clean |> 
+#   count(unique_plot_id) |> 
+#   filter(n == 1) |> 
+#   pull(unique_plot_id) |>
+#   unique() |> 
+#   cat(sep = "\n")
+# 
+# # Deng says: remove them for now (see issue above)
+# resurvey_clean <- resurvey_clean |> 
+#   add_count(unique_plot_id,name = "n_plots") |> 
+#   filter(n_plots >= 2) |> 
+#   select(-n_plots)
+# 
+# 
+# 
+# 
+# # https://github.com/zhaw-biodiversity-monitor/zhaw-biodiversity-monitor.github.io/issues/22
+# resurvey_clean |> 
+#   group_by(unique_plot_id, X, Y) |> 
+#   summarise() |> 
+#   group_by(unique_plot_id) |>
+#   add_count() |> 
+#   filter(n > 1) |> 
+#   select(-n) |> 
+#   mutate(i = row_number()) |> 
+#   pivot_wider(names_from = i, values_from = c(X, Y)) |> 
+#   ungroup() |> 
+#   mutate(
+#     dist = sqrt((X_1-X_2)^2 + (Y_1-Y_2)^2)
+#   ) |> 
+#   arrange(desc(dist)) |> 
+#   mutate(i = row_number(), .before = 1) |>
+#   knitr::kable()
+# 
+# 
+# # Just take the mean of X/Y for now
+# resurvey_clean <- resurvey_clean |> 
+#   group_by(unique_plot_id) |> 
+#   mutate(X = mean(X), Y = mean(Y))
+# 
+# 
+# # Quality Check: are there plots with multiple flache_m2 etc? (no)
+# resurvey_clean |> 
+#   group_by(unique_plot_id, dataset_id, plot_id, flache_m2, jahr) |> 
+#   summarise() |> 
+#   group_by(unique_plot_id) |>
+#   add_count() |> 
+#   filter(n > 1)
+# 
+# resurvey_two_years <- resurvey_clean |> 
+#   group_by(unique_plot_id, dataset_id, plot_id, flache_m2, lebensraumgruppe, X, Y) |>
+#   mutate(
+#     i = row_number(),
+#     i_max = max(i)
+#   ) |> 
+#   filter(i == 1 | i == i_max)
+# 
+# 
+# # Quality Check: Do we have two years for each plot / group?
+# stopifnot((n_groups(resurvey_two_years)*2) == nrow(resurvey_two_years))
+# 
+# 
+# resurvey_two_years
+# 
+# # This should be the new value for shannon_index:
+# (2.88-3.16)/(2020-1980)
+# 
+# resurvey_smry <- resurvey_two_years |>
+#   summarise(across(matches(vals), \(x)(x[2]-x[1])/(jahr[2]-jahr[1])))|> 
+#   st_as_sf(coords = c("X", "Y"), crs = 2056)
 
 
-hex10_resurvey <- aggregate_resurvey(resurvey_smry, vals, hex10) |> 
+
+
+
+
+threshold <- read_xlsx("tmp_resurvey_2025-01_annual_trends_threshold_definitions.xlsx", "Schwellenwerte")
+
+
+aggregate_resurvey <- function(resurvey, vals, by){
+  
+  # browser()
+  resurvey_vals <- resurvey |> 
+    ungroup() |> 
+    (\(x)x[,vals])()
+  
+  by_resurvey <- aggregate(resurvey_vals, by, FUN = mean,na.rm = TRUE)
+  
+  
+  by_resurvey$n <- aggregate(resurvey[,1], by, FUN = length) |>
+    st_drop_geometry() |> 
+    (\(x) x[,1])()
+  
+  cbind(by_resurvey, st_drop_geometry(by))
+}
+
+
+#vals <- c("artenzahl","relative_artenzahl","shannon_index", "shannon_evenness", "temperaturzahl", "kontinentalitatszahl", "lichtzahl", "feuchtezahl",  "reaktionszahl", "nahrstoffzahl", "humuszahl", "konkurrenzzahl", "ruderalzahl", "stresszahl", "mahdvertraglichkeit")
+vals <- c("species_richness",
+                    "phylogenetic_diversity",
+                    "functional_diversity",
+                    "funct_div_spec_leaf_area",
+                    "funct_div_seed_mass",
+                    "funct_div_height",
+                    "temperature",
+                    "nutrient",
+                    "reaction",
+                    "moisture",
+                    "light",
+                    "moving_tolerance",
+                    "urbanization",
+                    "cover_poaceae",
+                    "cover_forb",
+                    "cover_cyp_junc",
+                    "csr_stress_tolerance",
+                    "csr_disturbance_tolerance",
+                    "csr_competitive_ability")
+
+hex10_resurvey <- aggregate_resurvey(resurvey, vals, hex10) |>
   st_transform(4326) |> 
   filter(!is.na(n))
 
@@ -489,15 +482,15 @@ hex10_resurvey <- aggregate_resurvey(resurvey_smry, vals, hex10) |>
 
 
 
-hex20_resurvey <- aggregate_resurvey(resurvey_smry, vals, hex20) |> 
+hex20_resurvey <- aggregate_resurvey(resurvey, vals, hex20) |> 
   st_transform(4326) |> 
   filter(!is.na(n))
 
-bgr_resurvey <- aggregate_resurvey(resurvey_smry, vals, BGR) |> 
+bgr_resurvey <- aggregate_resurvey(resurvey, vals, BGR) |> 
   st_transform(4326) |> 
   filter(!is.na(n))
 
-kantone_resurvey <- aggregate_resurvey(resurvey_smry, vals, kantone) |> 
+kantone_resurvey <- aggregate_resurvey(resurvey, vals, kantone) |> 
   st_transform(4326) |> 
   filter(!is.na(n))
 
@@ -509,7 +502,7 @@ write_sf(hex20_resurvey, gpkg_path_resurvey, "hex20", delete_layer = TRUE)
 write_sf(bgr_resurvey, gpkg_path_resurvey, "bgr", delete_layer = TRUE)
 write_sf(kantone_resurvey, gpkg_path_resurvey, "kantone", delete_layer = TRUE)
 
-resurvey_smry |> 
+resurvey |> 
   st_transform(4326) |>
   write_sf(gpkg_path_resurvey, "punkte", delete_layer = TRUE)
 
@@ -517,7 +510,65 @@ resurvey_smry |>
 layers <- tibble(layer_name = st_layers(gpkg_path_resurvey)$name)
 
 cbind(
-  st_drop_geometry(resurvey_smry),
-  st_coordinates(resurvey_smry)
+  st_drop_geometry(resurvey),
+  st_coordinates(resurvey)
 ) |>
-  write_csv("appdata/resurvey.csv")
+  write_csv("resurvey_test.csv")
+
+
+
+
+
+
+#######################################################################################################################################
+#check data
+
+csv_path_res <- "C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/grassland-data-main/appdata/resurvey.csv"
+gpkg_path_res <- "C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/grassland-data-main/appdata/vectors_resurvey.gpkg"
+gpkg_path_tot <- "C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/grassland-data-main/appdata/vectors.gpkg"
+
+csv_path_sqft <- "C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/resurvey_test.csv"
+gpkg_path_sqft <- "C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/vectors_resurvey_test.gpkg"
+
+
+#' Load all layers from a GeoPackage file
+#' @param file Path to the GeoPackage file
+#' @param exception Layer names to exclude
+#' @return A list of sf objects
+load_geodata <- function(file = DATA_CONFIG$gpkg_path, exception = NA) {
+  layer_names <- st_layers(file)$name
+  layer_names <- layer_names[!(layer_names %in% exception)]
+  sapply(layer_names, \(x)st_read(file, x), simplify = FALSE)
+}
+
+#' Load dataset information
+#' @return A data frame with dataset information
+load_dataset_info <- function() {
+  read_csv(DATA_CONFIG$csv_path)
+}
+
+#' Get column values for visualization
+#' @param data The data frame
+#' @param column_name The name of the column to get values from
+#' @return The column values
+get_column_values <- function(data, column_name) {
+  if (column_name == "n") {
+    return(data$n)
+  }
+  return(data[[column_name]])
+} 
+
+layers_res <- st_layers(gpkg_path_res)$name
+layers_tot <- st_layers(gpkg_path_tot)$name
+layers_sqft <- st_layers(gpkg_path_sqft)$name
+
+
+data_geo_res <- load_geodata(file = gpkg_path_res, exception = NA)
+data_measurements_res <- read_csv(csv_path_res)
+data_geo_tot <- load_geodata(file = gpkg_path_tot, exception = NA)
+
+data_geo_sqft <- load_geodata(file = gpkg_path_sqft, exception = NA)
+data_measurements_sqft <- read_csv(csv_path_sqft)
+
+
+#######################################################################################################################################

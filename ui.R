@@ -1,21 +1,19 @@
-source("libraries_sqft.R")
-source("config_sqft.R")
-source("utils_sqft.R")
+source("libraries.R")
+source("config.R")
+source("utils.R")
 
-gpkg_path <- "vectors_test.gpkg"
-# "C:/Users/hedd/Documents/Dashboard VegChange Projekt/Squarefoot/grassland-data-main/appdata/vectors_resurvey.gpkg"
+gpkg_path <- "vectors_resurvey_test.gpkg"
+
 # layers <- read_sf(gpkg_path, "layers_overview")
 
 layers <- st_layers(gpkg_path)$name
-# 
-# layers <- read_sf(gpkg_path, "layers_overview")
-# aggregation1 <- unique(layers$aggregation1)
-# aggregation1 <- aggregation1[aggregation1 != "layers"]
-# 
 
 
 
-aggregation1 <- c(
+
+
+
+aggregation1 <- aggregation1 <- c(
   "keine Aggregation" = "punkte",
   "Hexagone (10x10km)" = "hex10",
   "Hexagone (20x20km)" = "hex20",
@@ -29,19 +27,26 @@ aggregation1 <- c(
 # datasets <- c("normallandschaft") # ,"tww","moore"
 
 
-dataset_options = c(
-  "delta" = 1,
-  "historisch" = 2,
-  "resurvey" = 3
-)
+# datasets2 <- c(
+#   "Charmillot et al (2021)" = 1	,
+#   "Schindler et al (2022)" = 2	,
+#   "Kummli et al (2021)" = 3	,
+#   "Hepenstrick et al (2023)" = 4	,
+#   "Babbi et al (2023)" = 5	,
+#   "Dengler et al (2022)" = 6	,
+#   "Kummli et al (2021)" = 7	,
+#   "Staubli et al (2021)" = 8	
+# )
 
-lebensraumgruppen <- c("Grasland","Zwergstrauchheide","Wald")
+#lebensraumgruppen <- c("Grasland","Zwergstrauchheide","Wald")
+time_a <- c("historic", "resurvey", "delta")
 
 
 
 
 
-column_options = c(
+
+col_y_options <- c(
   "Artenreichtum" = "species_richness",
   "Mittleren Temperaturzahl (x–y)" = "temperature",
   "Mittlere Lichtzahl (x–y)" = "light",
@@ -91,24 +96,24 @@ shinyUI(fluidPage(
       ),
       
       conditionalPanel(
-        condition = "input.aggregation == 'punkte'",
-        shinyWidgets::pickerInput(
-          "dataset",
-          "Datenset",
-          choices = UI_CONFIG$dataset_options,
-          selected = UI_CONFIG$dataset_options,
-          options = pickerOptions(actionsBox = TRUE),
-          multiple = TRUE
-        ),
+         condition = "input.aggregation == 'punkte'",
+      #   shinyWidgets::pickerInput(
+      #     "dataset",
+      #     "Datenset",
+      #     choices = UI_CONFIG$dataset_options,
+      #     selected = UI_CONFIG$dataset_options,
+      #     options = pickerOptions(actionsBox = TRUE),
+      #     multiple = TRUE
+      #   ),
         
         shinyWidgets::pickerInput(
-          "lebensraumgruppen",
-          "Lebensraumgruppen",
-          choices = UI_CONFIG$habitat_groups,
-          selected = UI_CONFIG$habitat_groups,
+          "time_a",
+          "Zeiteinheit",
+          choices = UI_CONFIG$time_aspect,
+          selected = UI_CONFIG$time_aspect,
           multiple = TRUE
         ),
-
+ 
         sliderInput(
           "flaeche",
           "Plotgrösse",

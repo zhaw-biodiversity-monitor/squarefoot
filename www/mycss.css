@@ -1,0 +1,36 @@
+.ylabel {
+    writing-mode: vertical-lr;
+    -webkit-transform: rotate(-180deg);
+    -moz-transform: rotate(-180deg);
+}
+
+.ylabel, .xlabel{
+    background-color: rgba(255, 255, 255, 1);
+    font-size: medium;
+}
+
+.val {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.tooltip {
+    visibility: hidden;
+    top: 50%;
+}
+
+.val:hover .tooltip {
+    visibility: visible;
+}
+
+.container2{
+    display: grid;
+    grid-template-columns: auto auto;
+    background-color: rgba(255, 255, 255, 0.4);
+}
+
+.matrix{
+    display: grid; 
+    align-content: end;
+}

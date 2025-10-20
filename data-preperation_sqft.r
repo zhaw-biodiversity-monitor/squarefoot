@@ -239,12 +239,11 @@ squarefoot_clean$time <- as.numeric(factor(squarefoot_clean$time)) ########### 1
 
 
 library(writexl)
-cbind(
+data <- cbind(
   st_drop_geometry(squarefoot_clean),
-  st_coordinates(squarefoot_clean)
-) |>
-  #write_csv("C:/Users/hedd/Documents/Dashboard VegChange Projekt/Squarefoot/Squarefoot code/squarefoot/sqft_clean.csv")
-  write_xlsx("C:/Users/hedd/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/sqft_clean.xlsx")
+  st_coordinates(squarefoot_clean))
+write_csv(data, "C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/sqft_clean.csv") #statt yaelh hedd
+write_xlsx(data, "C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/sqft_clean.xlsx")
 # squarefoot_clean <- cbind(
 #   st_drop_geometry(squarefoot_clean),
 #   st_coordinates(squarefoot_clean))
@@ -434,8 +433,6 @@ write_sf(hex20_squarefoot, gpkg_path, "hex20_squarefoot", delete_layer = TRUE)
 write_sf(bgr_squarefoot, gpkg_path, "bgr_squarefoot", delete_layer = TRUE)
 write_sf(kantone_squarefoot, gpkg_path, "kantone_squarefoot", delete_layer = TRUE)
 
-
-
 layers <- tibble(layer_name = st_layers(gpkg_path)$name)
 
 layers <- layers |>
@@ -443,6 +440,68 @@ layers <- layers |>
   separate(aggregation, c("aggregation1","aggregation2"),sep = "_",fill = "right")
 
 write_sf(layers, gpkg_path, "layers_overview",  delete_layer = TRUE)
+
+
+
+
+
+
+
+
+
+#######################################################################################################################################
+#check data
+
+csv_path_res <- "C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/grassland-data-main/appdata/resurvey.csv"
+gpkg_path_res <- "C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/grassland-data-main/appdata/vectors_resurvey.gpkg"
+gpkg_path_tot <- "C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/grassland-data-main/appdata/vectors.gpkg"
+
+csv_path_sqft <- "C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/sqft_clean.csv"
+gpkg_path_sqft <- "C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/vectors_test.gpkg"
+
+
+#' Load all layers from a GeoPackage file
+#' @param file Path to the GeoPackage file
+#' @param exception Layer names to exclude
+#' @return A list of sf objects
+load_geodata <- function(file = DATA_CONFIG$gpkg_path, exception = NA) {
+  layer_names <- st_layers(file)$name
+  layer_names <- layer_names[!(layer_names %in% exception)]
+  sapply(layer_names, \(x)st_read(file, x), simplify = FALSE)
+}
+
+#' Load dataset information
+#' @return A data frame with dataset information
+load_dataset_info <- function() {
+  read_csv(DATA_CONFIG$csv_path)
+}
+
+#' Get column values for visualization
+#' @param data The data frame
+#' @param column_name The name of the column to get values from
+#' @return The column values
+get_column_values <- function(data, column_name) {
+  if (column_name == "n") {
+    return(data$n)
+  }
+  return(data[[column_name]])
+} 
+
+layers_res <- st_layers(gpkg_path_res)$name
+layers_tot <- st_layers(gpkg_path_tot)$name
+layers_sqft <- st_layers(gpkg_path_sqft)$name
+
+
+data_geo_res <- load_geodata(file = gpkg_path_res, exception = NA)
+data_measurements_res <- read_csv(csv_path_res)
+
+data_geo_tot <- load_geodata(file = gpkg_path_tot, exception = NA)
+
+data_geo_sqft <- load_geodata(file = gpkg_path_sqft, exception = NA)
+data_measurements_sqft <- read_csv(csv_path_sqft)
+
+
+#######################################################################################################################################
 
 
 
