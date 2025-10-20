@@ -234,7 +234,7 @@ resurvey <- read_csv("Squarefoot_data_long.csv")
 #resurvey$Lebensraumgruppe <- resurvey$Time 
 
 id_cols <- c("PAG")
-independent_vars <- c("Time","Precision")#, "Lebensraumgruppe") #dataset_id
+independent_vars <- c("Time","Precision", "Altitude")#, "Lebensraumgruppe") #dataset_id
 dependent_vars <- c("Species_richness",
                    "Phylogenetic_diversity",
                    "Functional_diversity",
