@@ -30,7 +30,7 @@ init_map <- function() {
 #' @param data The data to display
 #' @param ycol The column to use for coloring
 #' @param column_y The name of the column for the legend
-update_map_points <- function(map_proxy, data, ycol, column_y) {
+update_map_points <- function(map_proxy, data, ycol, column_y){#, n_obs) {
   
   # browser()
   threshold_w <- threshold[threshold$Parameter == column_y,] |> 
@@ -51,9 +51,14 @@ update_map_points <- function(map_proxy, data, ycol, column_y) {
   
   
   # Create popup content
-  popup_content <- paste0(
-    #"<strong>Dataset ID:</strong> ", data$dataset_id, "<br>",
-    "<strong>Time:</strong> ", data$time, "<br>"
+  # popup_content <- paste0( #########################################################################################
+  #   #"<strong>Dataset ID:</strong> ", data$dataset_id, "<br>",
+  #   "<strong>Time:</strong> ", data$time, "<br>"
+  # )
+  popup_content <- paste(
+    paste(str_to_title(column_y), format(round(ycol, 3)), sep = ":"),
+    #paste("Anzahl Erhebungen", n_obs, sep = ":"),
+    sep = "<br>"
   )
   
   map_proxy |>
@@ -70,7 +75,7 @@ update_map_points <- function(map_proxy, data, ycol, column_y) {
       stroke = FALSE,
       fillOpacity = 1, 
       opacity = 1,
-      popup = popup_content,
+      label = popup_content, ############################# replaced popup
       #layerId = ~dataset_id,
       group = "main_points"
     ) |>

@@ -60,21 +60,19 @@ shinyServer(function(input, output) {
     geodata_i <- geodata_i()
     
     if (input$aggregation == "punkte") {
-      
+     # n_obs <- geodata_i$n      
       # Filter data for points
       # filtered_data <- filter_data(
       #   geodata_i,
-      #   input$dataset,
-      #   input$lebensraumgruppen,
-      #   input$flaeche
+      #   input$time_a
       # )
       
       # Get column values
-      ycol <- get_column_values(filtered_data(), input$column_y)
+      ycol <- get_column_values(geodata_i, input$column_y)
       
       # Update map with points
       leafletProxy("map") |>
-        update_map_points(filtered_data(), ycol, input$column_y)
+        update_map_points(geodata_i, ycol, input$column_y)#, n_obs)
     } else {
       # Get column values
       ycol <- get_column_values(geodata_i, input$column_y)
@@ -91,62 +89,160 @@ shinyServer(function(input, output) {
   
   
     observe({
-      
-      if(input$aggregation == "punkte"){
+
+      if(input$aggregation == "punkte"){ ####################### if ändern? - bei allen aggregationen und scatterplot hier machen
       # browser()
       ycol <- get_column_values(filtered_data(), input$column_y)
-      
+
       maxval <- max(abs(range(ycol)))
-      
-      output$scatterplot <- plot_ly(x = ycol) |> 
-        add_histogram() |> 
+
+      output$scatterplot <- plot_ly(x = ycol) |>
+        add_histogram() |>
         layout(
           xaxis = list(title = clean_names(input$column_y), range = list(maxval*-1, maxval)),
           yaxis = list(title = "Häufigkeit")
-        ) |> 
+        ) |>
         renderPlotly()
-      
-      }
-      
-    })
 
-  
-  # Handle point clicks
-  observeEvent(input$map_marker_click, {
-    if (input$aggregation == "punkte") {
-      click <- input$map_marker_click
-      #dataset_id <- click$id
-      
-      # Update selected dataset ID
-      #selected_dataset_id(dataset_id)
-      
-      # Get current data
-      # filtered_data <- filter_data(
-      #   geodata_i(),
-      #   input$dataset,
-      #   input$lebensraumgruppen,
-      #   input$flaeche
-      # )
-      
-      # Filter points with same dataset ID
-      #highlight_data <- filtered_data()[filtered_data()$  dataset_id == dataset_id, ]
-      
-      # browser()
-      
-      # Update highlight layer
-      leafletProxy("map") |>
-        clearGroup("highlight_points") |>
-        addCircleMarkers(
-          data = highlight_data,
-          radius = 8,
-          color = "black",  # Black border
-          fillOpacity = 0,
-          opacity = 1,
-          weight = 2,  # Thicker border
-          group = "highlight_points"
-        )
-    }
-  })
+      }
+    #   # output$scatterplot <- renderPlotly({
+    #   #   fig <-
+    #   #     plot_ly(
+    #   #       grassland_renamed(),
+    #   #       x = ~jahr,
+    #   #       y = ~column_y,
+    #   #       type = "scatter",
+    #   #       mode = "markers",
+    #   #       marker = list(color = "rgba(255, 182, 193, 1)"),
+    #   #       name = "all"
+    #   #     ) |>
+    #   #     add_trace(
+    #   #       data = grassland_inbounds_renamed(),
+    #   #       color = "",
+    #   #       marker = list(
+    #   #         color = "rgba(255,255,255,0)",
+    #   #         line = list(color = mycols$drawing$rgba_string, width = 2)
+    #   #       ),
+    #   #       name = "in bounds"
+    #   #     )
+    #   #   if (selected_object() != "") {
+    #   #     grassland_inpolygon <- grassland_renamed()[grassland_renamed()$agg == selected_object(), ]
+    #   #
+    #   #     fig <-
+    #   #       fig |>
+    #   #       add_trace(
+    #   #         data = grassland_inpolygon,
+    #   #         color = "",
+    #   #         marker = list(
+    #   #           color = "rgba(255,255,255,0)",
+    #   #           line = list(color = mycols$selected_polygon$rgba_string, width = 2)
+    #   #         ),
+    #   #         name = "in polygon"
+    #   #       )
+    #   #   }
+    #   #
+    #   #   fig |>
+    #   #     layout(
+    #   #       hovermode = FALSE,
+    #   #       clickmode = "none",
+    #   #       yaxis = list(title = paste0(clean_names(input$column_y), add_unit(input$column_y))),
+    #   #       xaxis = list(title = "Jahreszahl"),
+    #   #       modebar = list(
+    #   #         remove = c(
+    #   #           "autoScale2d",
+    #   #           "autoscale",
+    #   #           "editInChartStudio",
+    #   #           "editinchartstudio",
+    #   #           "hoverCompareCartesian",
+    #   #           "hovercompare",
+    #   #           "lasso",
+    #   #           "lasso2d",
+    #   #           "orbitRotation",
+    #   #           "orbitrotation",
+    #   #           "pan",
+    #   #           "pan2d",
+    #   #           "pan3d",
+    #   #           "reset",
+    #   #           "resetCameraDefault3d",
+    #   #           "resetCameraLastSave3d",
+    #   #           "resetGeo",
+    #   #           "resetSankeyGroup",
+    #   #           "resetScale2d",
+    #   #           "resetViewMapbox",
+    #   #           "resetViews",
+    #   #           "resetcameradefault",
+    #   #           "resetcameralastsave",
+    #   #           "resetsankeygroup",
+    #   #           "resetscale",
+    #   #           "resetview",
+    #   #           "resetviews",
+    #   #           "select",
+    #   #           "select2d",
+    #   #           "sendDataToCloud",
+    #   #           "senddatatocloud",
+    #   #           "tableRotation",
+    #   #           "tablerotation",
+    #   #           "toImage",
+    #   #           "toggleHover",
+    #   #           "toggleSpikelines",
+    #   #           "togglehover",
+    #   #           "togglespikelines",
+    #   #           "toimage",
+    #   #           "zoom",
+    #   #           "zoom2d",
+    #   #           "zoom3d",
+    #   #           "zoomIn2d",
+    #   #           "zoomInGeo",
+    #   #           "zoomInMapbox",
+    #   #           "zoomOut2d",
+    #   #           "zoomOutGeo",
+    #   #           "zoomOutMapbox",
+    #   #           "zoomin",
+    #   #           "zoomout",
+    #   #           "displaylogo"
+    #   #         )
+    #   #       )
+    #   #     )
+    #   # })
+     })
+
+
+  # # Handle point clicks
+  # observeEvent(input$map_marker_click, {
+  #   #if (input$aggregation == "punkte") {
+  #     click <- input$map_marker_click
+  #     #dataset_id <- click$id
+  #
+  #     # Update selected dataset ID
+  #     #selected_dataset_id(dataset_id)
+  #
+  #     # Get current data
+  #     # filtered_data <- filter_data(
+  #     #   geodata_i(),
+  #     #   input$dataset,
+  #     #   input$lebensraumgruppen,
+  #     #   input$flaeche
+  #     # )
+  #
+  #     # Filter points with same dataset ID
+  #     #highlight_data <- filtered_data()[filtered_data()$  dataset_id == dataset_id, ]
+  #
+  #     # browser()
+  #
+  #     # Update highlight layer
+  #     leafletProxy("map") |>
+  #       clearGroup("highlight_points") |>
+  #       addCircleMarkers(
+  #         data = highlight_data,
+  #         radius = 8,
+  #         color = "black",  # Black border
+  #         fillOpacity = 0,
+  #         opacity = 1,
+  #         weight = 2,  # Thicker border
+  #         group = "highlight_points"
+  #       )
+  #  # }
+   # })
   
   # Clear highlights when aggregation changes
   observeEvent(input$aggregation, {

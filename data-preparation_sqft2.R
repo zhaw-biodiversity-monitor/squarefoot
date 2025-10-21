@@ -29,170 +29,22 @@ hexagonize <- function(hex, to_be_hexagonized, ..., .na_omit = TRUE, .do_union =
   return(joined)
 }
 
-aggregate_grass <- function(
-    x,
-    by,
-    weight_col = "design_weight",
-    columns_to_weight = c("artenreichtum_gefasspflanzen", "artenreichtum_neophyten", "artenanteil_neophyten", "deckungsanteil_neophyten", "temperaturzahl", "kontinentalitatszahl", "feuchtezahl", "reaktionszahl", "nahrstoffzahl", "strategie_c", "strategie_r", "strategie_s"),
-    columns_to_count = "_p_a$", # columns matching this ("matches()") will just be counted
-    filter_zero_count = TRUE) {
-  ## Checks
+aggregate_squarefoot <- function(squarefoot, vals, by){
   
   # browser()
-  stopifnot(all(columns_to_weight %in% names(x)))
-  stopifnot(weight_col %in% names(x))
-  
-  # create a tidy select that I can use with matches()
-  columns_to_weight_tidy_sel <- paste(columns_to_weight, collapse = "|")
-  
-  # multiply all columns that should be weighed with the weight_col
-  weighted <- x[c(weight_col, columns_to_weight)] |> # select only the weight col and the columns to weigh
-    mutate(
-      across(
-        matches(columns_to_weight_tidy_sel), # for all columns that should be weighed...
-        function(z) {
-          z * x[[weight_col]]
-        }
-      ) # ... multiply by the weigh col
-    )
-  
-  weighted_sum <- cbind(
-    weighted,
-    st_drop_geometry(select(x, matches("_p_a$")))
-  ) |>
-    aggregate(by, sum, na.rm = TRUE)
-  
-  weighted_mean <- weighted_sum |>
-    mutate(
-      across(
-        matches(columns_to_weight_tidy_sel),
-        function(z) {
-          z / weighted_sum[[weight_col]]
-        }
-      )
-    )
-  
-  # agg_fun <- aggregate(x_weighted, by, FUN = FUN)
-  # agg_fun$n <-
-  weighted_mean$n <- aggregate(transmute(x, n = 1), by, FUN = length) |>
-    st_drop_geometry() |>
-    (\(x) x[, 1])()
-  
-  weighted_mean <- weighted_mean |>
-    mutate(
-      across(
-        ends_with("_p_a"),
-        function(z) {
-          z / n
-        }
-      )
-    )
-  
-  weighted_mean <- cbind(
-    weighted_mean,
-    st_drop_geometry(by)
-  )
-  
-  
-  if (filter_zero_count) {
-    weighted_mean <- weighted_mean[weighted_mean$n > 0 & !is.na(weighted_mean$n), ]
-  }
-  weighted_mean
-}
-
-aggregate_resurvey <- function(resurvey, vals, by){
-  
-  # browser()
-  resurvey_vals <- resurvey |> 
+  squarefoot_vals <- squarefoot |> 
     ungroup() |> 
     (\(x)x[,vals])()
   
-  by_resurvey <- aggregate(resurvey_vals, by, FUN = mean,na.rm = TRUE)
+  by_squarefoot <- aggregate(squarefoot_vals, by, FUN = mean,na.rm = TRUE)
   
-  
-  # i <- seq_len(nrow(by_resurvey))
-  # by_resurvey_geom <- st_geometry(by_resurvey) |> st_sf()
-  # by_resurvey_geom$i <- i
-  # st_geometry(by_resurvey_geom) <- "geom"
-  # 
-  # by_resurvey_vals <- st_drop_geometry(by_resurvey)
-  # by_resurvey_vals$i <- i
-  # 
-  # by_resurvey_lng <- pivot_longer(by_resurvey_vals, -i)
-  # 
-  # threshold_lng <- pivot_longer(threshold, -Parameter)
-  # 
-  # left_join(by_resurvey_lng, threshold_lng, by = c(name = "Parameter"), relationship = "many-to-many") |> 
-  #   filter()
-  
-  
-  
-  
-  by_resurvey$n <- aggregate(resurvey[,1], by, FUN = length) |>
+  by_squarefoot$n <- aggregate(squarefoot[,1], by, FUN = length) |>
     st_drop_geometry() |> 
     (\(x) x[,1])()
   
-  cbind(by_resurvey, st_drop_geometry(by))
+  cbind(by_squarefoot, st_drop_geometry(by))
 }
 
-aggregate_infoflora <- function(resurvey, vals, by){
-  
-  resurvey_vals <- resurvey |> 
-    ungroup() |> 
-    (\(x)x[,vals])()
-  
-  by_resurvey <- aggregate(resurvey_vals, by, FUN = mean,na.rm = TRUE)
-  by_resurvey$n <- aggregate(resurvey[,1], by, FUN = length) |>
-    st_drop_geometry() |> 
-    (\(x) x[,1])()
-  
-  cbind(by_resurvey, st_drop_geometry(by))
-}
-
-import_sheet <- function(xlsx, sheet) {
-  library(readxl)
-  library(janitor)
-  library(dplyr)
-  read_excel(xlsx, sheet) |>
-    janitor::clean_names() |>
-    transmute(
-      plot_id,
-      design_weight,
-      x_lv95,
-      y_lv95,
-      lange,
-      breite,
-      meereshohe,
-      artenreichtum_gefasspflanzen,
-      artenreichtum_neophyten,
-      artenanteil_neophyten,
-      deckungsanteil_neophyten,
-      temperaturzahl,
-      kontinentalitatszahl,
-      feuchtezahl,
-      reaktionszahl,
-      nahrstoffzahl,
-      strategie_c,
-      strategie_r,
-      strategie_s,
-      lolium_multiflorum_p_a,
-      veronica_filiformis_p_a,
-      veronica_persica_p_a,
-      medicago_sativa_p_a,
-      erigeron_annuus_p_a,
-      matricaria_discoidea_p_a,
-      bromus_inermis_p_a,
-      conyza_canadensis_aggr_p_a,
-      impatiens_parviflora_p_a,
-      juncus_tenuis_p_a,
-      solidago_gigantea_p_a,
-      vicia_villosa_p_a
-    ) |>
-    mutate(
-      across(!ends_with("_p_a"), as.numeric),
-      across(ends_with("_p_a"), as.logical),
-    )
-}
 
 
 ################################################################################################################
@@ -226,10 +78,10 @@ schweiz <- read_sf("swissboundaries3d_2022-05_2056_5728.shp/SHAPEFILE_LV95_LN02/
 ################################################################################################################
 
 # output
-gpkg_path_resurvey <- "vectors_resurvey_test.gpkg"
+gpkg_path_squarefoot <- "vectors_squarefoot.gpkg"
 
 
-resurvey <- read_csv("Squarefoot_data_long.csv")
+squarefoot <- read_csv("Squarefoot_data_long.csv")
 #resurvey$dataset_id <- as.numeric(factor(resurvey$Time)) ########### 1 = delta, 3 = resurvey, 2 = historic 
 #resurvey$Lebensraumgruppe <- resurvey$Time 
 
@@ -260,15 +112,15 @@ coordinate_cols <- c("Center_x_coordinate", "Center_y_coordinate") #2056? or 432
 
 
 # Quality Checks
-stopifnot(id_cols %in% colnames(resurvey) |> all())
-stopifnot(independent_vars %in% colnames(resurvey) |> all())
-stopifnot(dependent_vars %in% colnames(resurvey) |> all())
-stopifnot(coordinate_cols %in% colnames(resurvey) |> all())
+stopifnot(id_cols %in% colnames(squarefoot) |> all())
+stopifnot(independent_vars %in% colnames(squarefoot) |> all())
+stopifnot(dependent_vars %in% colnames(squarefoot) |> all())
+stopifnot(coordinate_cols %in% colnames(squarefoot) |> all())
 
 
 
 
-# Quality checks?
+# more Quality checks?
 
 
 
@@ -313,7 +165,7 @@ kantone <- kantone |>
 
 ## ↳ Resurvey: Aggregate Data to Polygon and export to gpkg
 ################################################################################################################
-resurvey <- resurvey[,c(id_cols,independent_vars,dependent_vars, coordinate_cols)]  |>
+squarefoot <- squarefoot[,c(id_cols,independent_vars,dependent_vars, coordinate_cols)]  |>
   filter(if_any(matches(coordinate_cols), \(x)!is.na(x))) |>
   st_as_sf(coords = coordinate_cols, crs = 2056) |>
   janitor::clean_names()
@@ -423,22 +275,24 @@ resurvey <- resurvey[,c(id_cols,independent_vars,dependent_vars, coordinate_cols
 threshold <- read_xlsx("tmp_resurvey_2025-01_annual_trends_threshold_definitions.xlsx", "Schwellenwerte")
 
 
-aggregate_resurvey <- function(resurvey, vals, by){
-  
-  # browser()
-  resurvey_vals <- resurvey |> 
-    ungroup() |> 
-    (\(x)x[,vals])()
-  
-  by_resurvey <- aggregate(resurvey_vals, by, FUN = mean,na.rm = TRUE)
-  
-  
-  by_resurvey$n <- aggregate(resurvey[,1], by, FUN = length) |>
-    st_drop_geometry() |> 
-    (\(x) x[,1])()
-  
-  cbind(by_resurvey, st_drop_geometry(by))
-}
+# aggregate_squarefoot <- function(squarefoot, vals, by){
+#   
+#   # browser()
+#   squarefoot_vals <- squarefoot |> 
+#     ungroup() |> 
+#     (\(x)x[,vals])()
+#   
+#   by_squarefoot <- aggregate(squarefoot_vals, by, FUN = mean,na.rm = TRUE)
+#   
+#   
+#   by_squarefoot$n <- aggregate(squarefoot[,1], by, FUN = length) |>
+#     st_drop_geometry() |> 
+#     (\(x) x[,1])()
+#   
+#   cbind(by_squarefoot, st_drop_geometry(by))
+# }
+
+
 
 
 #vals <- c("artenzahl","relative_artenzahl","shannon_index", "shannon_evenness", "temperaturzahl", "kontinentalitatszahl", "lichtzahl", "feuchtezahl",  "reaktionszahl", "nahrstoffzahl", "humuszahl", "konkurrenzzahl", "ruderalzahl", "stresszahl", "mahdvertraglichkeit")
@@ -462,7 +316,7 @@ vals <- c("species_richness",
                     "csr_disturbance_tolerance",
                     "csr_competitive_ability")
 
-hex10_resurvey <- aggregate_resurvey(resurvey, vals, hex10) |>
+hex10_squarefoot <- aggregate_squarefoot(squarefoot, vals, hex10) |>
   st_transform(4326) |> 
   filter(!is.na(n))
 
@@ -482,38 +336,38 @@ hex10_resurvey <- aggregate_resurvey(resurvey, vals, hex10) |>
 
 
 
-hex20_resurvey <- aggregate_resurvey(resurvey, vals, hex20) |> 
+hex20_squarefoot <- aggregate_squarefoot(squarefoot, vals, hex20) |> 
   st_transform(4326) |> 
   filter(!is.na(n))
 
-bgr_resurvey <- aggregate_resurvey(resurvey, vals, BGR) |> 
+bgr_squarefoot <- aggregate_squarefoot(squarefoot, vals, BGR) |> 
   st_transform(4326) |> 
   filter(!is.na(n))
 
-kantone_resurvey <- aggregate_resurvey(resurvey, vals, kantone) |> 
+kantone_squarefoot <- aggregate_squarefoot(squarefoot, vals, kantone) |> 
   st_transform(4326) |> 
   filter(!is.na(n))
 
 
 
-if(file.exists(gpkg_path_resurvey))file.remove(gpkg_path_resurvey)
-write_sf(hex10_resurvey, gpkg_path_resurvey, "hex10", delete_layer = TRUE)
-write_sf(hex20_resurvey, gpkg_path_resurvey, "hex20", delete_layer = TRUE)
-write_sf(bgr_resurvey, gpkg_path_resurvey, "bgr", delete_layer = TRUE)
-write_sf(kantone_resurvey, gpkg_path_resurvey, "kantone", delete_layer = TRUE)
+if(file.exists(gpkg_path_squarefoot))file.remove(gpkg_path_squarefoot)
+write_sf(hex10_squarefoot, gpkg_path_squarefoot, "hex10", delete_layer = TRUE)
+write_sf(hex20_squarefoot, gpkg_path_squarefoot, "hex20", delete_layer = TRUE)
+write_sf(bgr_squarefoot, gpkg_path_squarefoot, "bgr", delete_layer = TRUE)
+write_sf(kantone_squarefoot, gpkg_path_squarefoot, "kantone", delete_layer = TRUE)
 
-resurvey |> 
+squarefoot |> 
   st_transform(4326) |>
-  write_sf(gpkg_path_resurvey, "punkte", delete_layer = TRUE)
+  write_sf(gpkg_path_squarefoot, "punkte", delete_layer = TRUE)
 
 
-layers <- tibble(layer_name = st_layers(gpkg_path_resurvey)$name)
+layers <- tibble(layer_name = st_layers(gpkg_path_squarefoot)$name)
 
 cbind(
-  st_drop_geometry(resurvey),
-  st_coordinates(resurvey)
+  st_drop_geometry(squarefoot),
+  st_coordinates(squarefoot)
 ) |>
-  write_csv("resurvey_test.csv")
+  write_csv("squarefoot.csv")
 
 
 
@@ -527,8 +381,8 @@ csv_path_res <- "C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squ
 gpkg_path_res <- "C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/grassland-data-main/appdata/vectors_resurvey.gpkg"
 gpkg_path_tot <- "C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/grassland-data-main/appdata/vectors.gpkg"
 
-csv_path_sqft <- "C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/resurvey_test.csv"
-gpkg_path_sqft <- "C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/vectors_resurvey_test.gpkg"
+csv_path_sqft <- "C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/squarefoot.csv"
+gpkg_path_sqft <- "C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/vectors_squarefoot.gpkg"
 
 
 #' Load all layers from a GeoPackage file

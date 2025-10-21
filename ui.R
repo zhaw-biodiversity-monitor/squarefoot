@@ -2,7 +2,7 @@ source("libraries.R")
 source("config.R")
 source("utils.R")
 
-gpkg_path <- "vectors_resurvey_test.gpkg"
+gpkg_path <- "vectors_squarefoot.gpkg"
 
 # layers <- read_sf(gpkg_path, "layers_overview")
 
@@ -95,38 +95,17 @@ shinyUI(fluidPage(
         UI_CONFIG$column_options
       ),
       
-      conditionalPanel(
-         condition = "input.aggregation == 'punkte'",
-      #   shinyWidgets::pickerInput(
-      #     "dataset",
-      #     "Datenset",
-      #     choices = UI_CONFIG$dataset_options,
-      #     selected = UI_CONFIG$dataset_options,
-      #     options = pickerOptions(actionsBox = TRUE),
-      #     multiple = TRUE
-      #   ),
-        
-        shinyWidgets::pickerInput(
+     shinyWidgets::pickerInput(
           "time_a",
           "Zeiteinheit",
           choices = UI_CONFIG$time_aspect,
           selected = UI_CONFIG$time_aspect,
           multiple = TRUE
-        ),
+          ),
  
-        sliderInput(
-          "flaeche",
-          "Plotgrösse",
-          min = 0,
-          max = 500,
-          step = 50,
-          value = c(0,500)
-        ),
+
         plotly::plotlyOutput("scatterplot")
       ),
-      
-      
-    ),
     
     mainPanel(
       leaflet::leafletOutput("map", height = 600)
