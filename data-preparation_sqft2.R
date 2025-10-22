@@ -84,6 +84,10 @@ gpkg_path_squarefoot <- "vectors_squarefoot.gpkg"
 squarefoot <- read_csv("Squarefoot_data_long.csv")
 #resurvey$dataset_id <- as.numeric(factor(resurvey$Time)) ########### 1 = delta, 3 = resurvey, 2 = historic 
 #resurvey$Lebensraumgruppe <- resurvey$Time 
+squarefoot$Species_richness[1] <- -200
+squarefoot$Species_richness[565] <- 200
+squarefoot$Time[1]
+squarefoot$Time[565]
 
 id_cols <- c("PAG")
 independent_vars <- c("Time","Precision", "Altitude")#, "Lebensraumgruppe") #dataset_id

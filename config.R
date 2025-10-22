@@ -15,8 +15,8 @@ MAP_CONFIG <- list(
 
 # Data Configuration
 DATA_CONFIG <- list(
-  gpkg_path = "vectors_resurvey_test.gpkg",
-  csv_path = "resurvey_test.csv"
+  gpkg_path = "vectors_squarefoot.gpkg",
+  csv_path = "squarefoot.csv"
 )
 
 # UI Configuration
@@ -62,7 +62,7 @@ UI_CONFIG <- list(
   #   "Staubli et al (2021)" = 8
   # ),
   
-  time_aspect = c("historic", "resurvey", "delta")
+  time_aspect = c("historisch" = "historic", "resurvey" = "resurvey", "Differenz" = "delta")
   #time = c("historic", "resurvey", "delta")
 )
 

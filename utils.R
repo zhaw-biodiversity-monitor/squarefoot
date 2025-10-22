@@ -1,11 +1,11 @@
 
 
 
-col_y_options <- c(
-  "Artenreichtum" = "species_richness",
-  "Relativer Artenreichtum" = "relative_species_richness",
-  "Datenpunkte" = "n"
-)
+# col_y_options <- c(
+#   "Artenreichtum" = "species_richness",
+#   "Relativer Artenreichtum" = "relative_species_richness",
+#   "Datenpunkte" = "n"
+# )
 
 read_all_layers <- function(file, exception = NA) {
   layer_names <- st_layers(file)$name

@@ -46,27 +46,27 @@ time_a <- c("historic", "resurvey", "delta")
 
 
 
-col_y_options <- c(
-  "Artenreichtum" = "species_richness",
-  "Mittleren Temperaturzahl (x–y)" = "temperature",
-  "Mittlere Lichtzahl (x–y)" = "light",
-  "Mittlerer Feuchtezahl (x–y)" = "moisture",
-  "Mittlerer Reaktionszahl (x–y)" = "reaction",
-  "Mittlerer Nährstoffzahl (x–y)" = "nutrient",
-  "Mittlerer Konkurrenzstrategie (0–1)" = "csr_competitive_ability",
-  "Mittlerer Ruderalstrategie (0–1)" = "csr_disturbance_tolerance",
-  "Mittlerer Stresszahl (0–3)" = "csr_stress_tolerance",
-  "Mittlerer Mahdverträglichkeitszahl (1–5)" = "moving_tolerance",
-  "Phylogenetische Diversität" = "phylogenetic_diversity",
-  "Funktionale Diversität" = "functional_diversity",
-  "Funktionale Diversität spezifische Blattfläche" = "funct_div_spec_leaf_area",
-  "Funktionale Diversität Samengewicht" = "funct_div_seed_mass",
-  "Funktionale Diversität Höhe" = "funct_div_height",
-  "Mittlere Hemerobiezahl (1-5)" = "urbanization",
-  "Anteil Deckung Poaceae" = "cover_poaceae",
-  "Anteil Deckung Krautartige" = "cover_forb",
-  "Anteil Deckung  Cyperaceae & Juncaceae" = "cover_cyp_junc"
-)
+# col_y_options <- c(
+#   "Artenreichtum" = "species_richness",
+#   "Mittleren Temperaturzahl (x–y)" = "temperature",
+#   "Mittlere Lichtzahl (x–y)" = "light",
+#   "Mittlerer Feuchtezahl (x–y)" = "moisture",
+#   "Mittlerer Reaktionszahl (x–y)" = "reaction",
+#   "Mittlerer Nährstoffzahl (x–y)" = "nutrient",
+#   "Mittlerer Konkurrenzstrategie (0–1)" = "csr_competitive_ability",
+#   "Mittlerer Ruderalstrategie (0–1)" = "csr_disturbance_tolerance",
+#   "Mittlerer Stresszahl (0–3)" = "csr_stress_tolerance",
+#   "Mittlerer Mahdverträglichkeitszahl (1–5)" = "moving_tolerance",
+#   "Phylogenetische Diversität" = "phylogenetic_diversity",
+#   "Funktionale Diversität" = "functional_diversity",
+#   "Funktionale Diversität spezifische Blattfläche" = "funct_div_spec_leaf_area",
+#   "Funktionale Diversität Samengewicht" = "funct_div_seed_mass",
+#   "Funktionale Diversität Höhe" = "funct_div_height",
+#   "Mittlere Hemerobiezahl (1-5)" = "urbanization",
+#   "Anteil Deckung Poaceae" = "cover_poaceae",
+#   "Anteil Deckung Krautartige" = "cover_forb",
+#   "Anteil Deckung  Cyperaceae & Juncaceae" = "cover_cyp_junc"
+# )
 
 # sfobs <- st_read(gpkg_path, layers[1])
 # stopifnot(all((col_y_options) %in% colnames(sfobs)))
@@ -79,7 +79,7 @@ col_y_options <- c(
 # Define UI for application
 shinyUI(fluidPage(
   tags$script(src = "myjs.js"),
-  titlePanel("Zeitreihen von Vegetationsaufnahmen der Schweiz"),
+  titlePanel("Vegetationsaufnahmen der Schweiz"),
   
   sidebarLayout(
     sidebarPanel(
@@ -95,12 +95,10 @@ shinyUI(fluidPage(
         UI_CONFIG$column_options
       ),
       
-     shinyWidgets::pickerInput(
+      selectInput(
           "time_a",
           "Zeiteinheit",
-          choices = UI_CONFIG$time_aspect,
-          selected = UI_CONFIG$time_aspect,
-          multiple = TRUE
+          UI_CONFIG$time_aspect
           ),
  
 
