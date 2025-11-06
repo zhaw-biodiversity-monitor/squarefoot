@@ -8,6 +8,12 @@ init_map <- function() {
       MAP_CONFIG$tile_layers$grau,
       group = "Pixelkarte grau"
     ) |>
+    # leaflet.extras::addDrawToolbar(
+    #   targetGroup = "draw",
+    #   polygonOptions = TRUE,
+    #   rectangleOptions = TRUE,
+    #   editOptions = leaflet.extras::editToolbarOptions()
+    # )|>
     addTiles(
       MAP_CONFIG$tile_layers$swissimage,
       group = "Swissimage"
@@ -87,6 +93,7 @@ update_map_points <- function(map_proxy, data, ycol, column_y){#, n_obs) {
       color = "white",
       fillOpacity = 0,
       opacity = 0,
+      label = popup_content, ################################# neu
       group = "highlight_points"
     ) |>
     addLegend(
@@ -120,7 +127,7 @@ update_map_polygons <- function(map_proxy, data, ycol, n_obs, column_y, n_classe
   
   bivariate_palette <- COLOR_CONFIG$bivariate_palette
   
-  if (!(column_y %in% c("feuchtezahl", "reaktionszahl"))) {
+  if (!(column_y %in% c("feuchtezahl", "reaktionszahl"))) { ##############################################################????????????
     bivariate_palette <- rev(bivariate_palette)
   } 
   

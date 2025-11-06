@@ -25,8 +25,8 @@
 
 
 ## combine data from two data files
-data_1 <- read.csv("C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/SqFt_HP_env.csv", sep =";") #yaelh. hedd
-data_2 <- read.csv("C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/PAG_dDiv.csv", sep=";")
+data_1 <- read.csv("C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/raw data/SqFt_HP_env.csv", sep =";") #yaelh. hedd
+data_2 <- read.csv("C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/raw data/PAG_dDiv.csv", sep=";")
 
 names(data_1)
 # length(data_1$PAG)
@@ -54,7 +54,7 @@ merged_data_subset <- merged_data[ , !(names(merged_data) %in% c("sla_HP", "heig
                                                                   "dTherophyte", "dGeophyte", "dHemicryptophyte", "dHerbaceous_chamaephyte", "dsla", "dplant_heigt", "dseed_mass"))]
 
 
-write.csv(merged_data_subset, "C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/Squarefoot_data.csv", row.names = FALSE)
+write.csv(merged_data_subset, "C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/one-off scripts/Squarefoot_data.csv", row.names = FALSE)
 
 
 ###########################################################################################
@@ -134,6 +134,32 @@ names(dataset_long)[names(dataset_long) == "FD_sla"] <- "Funct_div_spec_leaf_are
 names(dataset_long)[names(dataset_long) == "FD_seed_mass"] <- "Funct_div_seed_mass"
 names(dataset_long)[names(dataset_long) == "FD_height"] <- "Funct_div_height"
 names(dataset_long)[names(dataset_long) == "Altitude_original"] <- "Altitude"
+names(dataset_long)[names(dataset_long) == "Urbanization"] <- "EIV_Hemeroby"
+
+
+
+#translate the variables to display to german
+names(dataset_long)[names(dataset_long) == "Species_richness"] <- "Anzahl_Arten" ########################## evtl. ä und ö mit ae und oe schon hier ersetzen? - variablen in sta_preparation_sqft3 und config anpassen
+names(dataset_long)[names(dataset_long) == "Phylogenetic_diversity"] <- "Phylogenetische_Diversität"
+names(dataset_long)[names(dataset_long) == "Functional_diversity"] <- "Funktionale_Diversität"
+names(dataset_long)[names(dataset_long) == "Funct_div_spec_leaf_area"] <- "Funktionale_Diversität_spezifische_Blattfläche"
+names(dataset_long)[names(dataset_long) == "Funct_div_seed_mass"] <- "Funktionale_Diversität_Samengewicht"
+names(dataset_long)[names(dataset_long) == "Funct_div_height"] <- "Funktionale_Diversität_Höhe"
+names(dataset_long)[names(dataset_long) == "Temperature"] <- "Temperatur"
+names(dataset_long)[names(dataset_long) == "Nutrient"] <- "Nährstoff"
+names(dataset_long)[names(dataset_long) == "Reaction"] <- "Reaktion"
+names(dataset_long)[names(dataset_long) == "Moisture"] <- "Feuchtigkeit"
+names(dataset_long)[names(dataset_long) == "Light"] <- "Licht"
+names(dataset_long)[names(dataset_long) == "Moving_tolerance"] <- "Mahdverträglichkeit"
+names(dataset_long)[names(dataset_long) == "EIV_Hemeroby"] <- "Hemerobiezahl"
+names(dataset_long)[names(dataset_long) == "Cover_Poaceae"] <- "Anteil_Deckung_Poaceae"
+names(dataset_long)[names(dataset_long) == "Cover_Forb"] <- "Anteil_Deckung_Krautartige"
+names(dataset_long)[names(dataset_long) == "Cover_Cyp_Junc"] <- "Anteil_Deckung_Cyperaceae_und_Juncaceae"
+names(dataset_long)[names(dataset_long) == "CSR_Stress_tolerance"] <- "Stresszahl"
+names(dataset_long)[names(dataset_long) == "CSR_Disturbance_tolerance"] <- "Ruderalstrategie"
+names(dataset_long)[names(dataset_long) == "CSR_Competitive_ability"] <- "Konkurrenzstrategie"
+
+
 
 ##########################################################################################
 # transform coordinates from the global system (4326) to swiss system (2056 )
@@ -146,20 +172,28 @@ dataset_long$Center_x_coordinate <- st_coordinates(df_swiss)[,1]
 dataset_long$Center_y_coordinate <- st_coordinates(df_swiss)[,2]
 
 
-write.csv(dataset_long,"C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/Squarefoot_data_long.csv", row.names = FALSE)
+write.csv(dataset_long,"C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/appdata/Squarefoot_data_long.csv", row.names = FALSE)
+
+
+
+
+
+
+
+
 
 
 
 ##########################################################################################################################
 #split the dataset into the three time options and put them into a sheet of an xlsx file
-dataset_historic <- dataset_long[dataset_long$Time == "historic", ]
-dataset_resurvey <- dataset_long[dataset_long$Time == "resurvey", ]
-dataset_delta <- dataset_long[dataset_long$Time == "delta", ]
-library(openxlsx)
-
-write.xlsx(list(
-    "historic" = dataset_historic,
-    "resurvey" = dataset_resurvey,
-    "delta" = dataset_delta),
-  file = "squarefoot_data_cleaned.xlsx")
+# dataset_historic <- dataset_long[dataset_long$Time == "historic", ]
+# dataset_resurvey <- dataset_long[dataset_long$Time == "resurvey", ]
+# dataset_delta <- dataset_long[dataset_long$Time == "delta", ]
+# library(openxlsx)
+# 
+# write.xlsx(list(
+#     "historic" = dataset_historic,
+#     "resurvey" = dataset_resurvey,
+#     "delta" = dataset_delta),
+#   file = "squarefoot_data_cleaned.xlsx")
 

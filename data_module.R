@@ -3,7 +3,7 @@
 
 #threshold <- read_csv("appdata/thresholds.csv")
 library(readxl) 
-threshold <- read_xlsx("tmp_resurvey_2025-01_annual_trends_threshold_definitions.xlsx", sheet="Schwellenwerte")##########################################
+threshold <- read_xlsx("appdata/threshold_definitions_de.xlsx", sheet="Schwellenwerte")##########################################threshold_definitions_eng.xlsx
 
 
 #' Load all layers from a GeoPackage file
@@ -13,7 +13,26 @@ threshold <- read_xlsx("tmp_resurvey_2025-01_annual_trends_threshold_definitions
 load_geodata <- function(file = DATA_CONFIG$gpkg_path, exception = NA) {
   layer_names <- st_layers(file)$name
   layer_names <- layer_names[!(layer_names %in% exception)]
-  sapply(layer_names, \(x)st_read(file, x), simplify = FALSE)
+  data_geo_sqft <- sapply(layer_names, \(x)st_read(file, x), simplify = FALSE)
+  
+  historisch_list <- data_geo_sqft[grep("historisch$", names(data_geo_sqft))] # get time as additional level of the data organisation
+  resurvey_list <- data_geo_sqft[grep("resurvey$", names(data_geo_sqft))]
+  delta_list <- data_geo_sqft[grep("delta$", names(data_geo_sqft))]
+  
+  old_names <- names(historisch_list)
+  new_names <- sub("_historisch$", "", old_names) 
+  names(historisch_list) <- new_names
+  
+  old_names <- names(resurvey_list)
+  new_names <- sub("_resurvey$", "", old_names) 
+  names(resurvey_list) <- new_names
+  
+  old_names <- names(delta_list)
+  new_names <- sub("_delta$", "", old_names) 
+  names(delta_list) <- new_names
+  
+  geodata <- list(historisch = historisch_list, resurvey = resurvey_list, delta = delta_list)
+  return(geodata)
 }
 
 #' Load dataset information
@@ -30,7 +49,7 @@ load_dataset_info <- function() {
 #' @return Filtered data
 filter_data <- function(data, time_aspect) { #data, dataset_ids, habitat_groups, area_range
   data |>
-    #filter(dataset_id %in% dataset_ids) |>
+    #filter(dataset_id %in% dataset_ids) |> ############################### bruuchi gar nöd?
     filter(time %in% time_aspect) 
     #filter(time %in% time_c) 
 }

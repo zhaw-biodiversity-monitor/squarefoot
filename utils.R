@@ -1,12 +1,5 @@
 
 
-
-# col_y_options <- c(
-#   "Artenreichtum" = "species_richness",
-#   "Relativer Artenreichtum" = "relative_species_richness",
-#   "Datenpunkte" = "n"
-# )
-
 read_all_layers <- function(file, exception = NA) {
   layer_names <- st_layers(file)$name
   layer_names <- layer_names[!(layer_names %in% exception)]
@@ -14,44 +7,40 @@ read_all_layers <- function(file, exception = NA) {
 }
 
 clean_names <- function(str) {
-
-  # if (str_detect(str, "kontinentalitatszahl")) {
-  #    str <- "kontinentalit$tszahl"
-  # } else if (str_detect(input, "nahrstoffzahl")) {
-  #    str <- "nährstoffzahl"
-  # }
-
   str |>
     str_replace_all("_", " ") |>
+    str_replace_all("a0e", "ä") |>
+    str_replace_all("o0e", "ö") |>
+    str_replace_all("u0e", "ü") |>
     str_to_title()
 }
 
 
-add_unit <- function(input, add_break = TRUE, add_brackets = TRUE) {
-  unit <- case_when(
-    str_detect(input, "artenreichtum") ~ "Anzahl Arten",
-    str_detect(input, "anteil") ~ "Anteil Neophyten zwischen 0-1",
-    str_detect(input, "temperaturzahl") ~ "Temperaturzahl",
-    str_detect(input, "kontinentalitatszahl") ~ "Kontinentalitätszahl",
-    str_detect(input, "freuchtezahl") ~ "Feuchtezahl",
-    str_detect(input, "reaktionszahl") ~ "Reaktionszahl",
-    str_detect(input, "nahrstoffzahl") ~ "Nährstoffzahl",
-    str_detect(input, "strategie_c") ~ "Konkurrenzzahl",
-    str_detect(input, "strategie_s") ~ "Stresszahl",
-    str_detect(input, "strategie_r") ~ "Ruderalzahl",
-    .default = ""
-  )
-
-  if (add_brackets & unit != "") {
-    unit <- paste0("(", unit, ")")
-  }
-
-  if (add_break & unit != "") {
-    unit <- paste0("\n", unit)
-  }
-
-  unit
-}
+# add_unit <- function(input, add_break = TRUE, add_brackets = TRUE) {
+#   unit <- case_when(
+#     str_detect(input, "artenreichtum") ~ "Anzahl Arten",
+#     str_detect(input, "anteil") ~ "Anteil Neophyten zwischen 0-1",
+#     str_detect(input, "temperaturzahl") ~ "Temperaturzahl",
+#     str_detect(input, "kontinentalitatszahl") ~ "Kontinentalitätszahl",
+#     str_detect(input, "freuchtezahl") ~ "Feuchtezahl",
+#     str_detect(input, "reaktionszahl") ~ "Reaktionszahl",
+#     str_detect(input, "nahrstoffzahl") ~ "Nährstoffzahl",
+#     str_detect(input, "strategie_c") ~ "Konkurrenzzahl",
+#     str_detect(input, "strategie_s") ~ "Stresszahl",
+#     str_detect(input, "strategie_r") ~ "Ruderalzahl",
+#     .default = ""
+#   )
+# 
+#   if (add_brackets & unit != "") {
+#     unit <- paste0("(", unit, ")")
+#   }
+# 
+#   if (add_break & unit != "") {
+#     unit <- paste0("\n", unit)
+#   }
+# 
+#   unit
+# }
 
 # from a list of datasets, select a perticular dataset based on the aggregation level and the "topic"
 # select_dataset <-
@@ -108,7 +97,7 @@ bivariate_matrix_alpha <-
 
 
 
-create_legend <- function(bivariate_matrix, attribute_y = "Attribute Y", include_css = "www/mycss.css") {
+create_legend <- function(bivariate_matrix, attribute_y = "Attribute Y", include_css = "appdata/www/mycss.css") {
 
 
   stopifnot(nrow(bivariate_matrix) == ncol(bivariate_matrix))
