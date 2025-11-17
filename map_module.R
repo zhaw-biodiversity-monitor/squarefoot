@@ -45,11 +45,6 @@ update_map_points <- function(map_proxy, data, ycol, column_y, threshold, time_a
       pivot_longer(-Parameter)
     ycol_labs <- cut(ycol, c(-Inf,threshold_w$value,Inf),labels = c(threshold_w$name[1:2],"Gleichbleibend",threshold_w$name[3:4]))
     pal_col <- RColorBrewer::brewer.pal(length(levels(ycol_labs)), "RdYlBu")
-
-    # Use inverted color scale if not "Feuchtezahl" or "Reaktionszahl"
-    if (!(column_y %in% c("feuchtezahl", "reaktionszahl"))) {
-      pal_col <- rev(pal_col)
-    } 
   
     pal <- colorFactor(palette = pal_col, domain = ycol_labs)
     
@@ -74,7 +69,7 @@ update_map_points <- function(map_proxy, data, ycol, column_y, threshold, time_a
         stroke = FALSE,
         fillOpacity = 1, 
         opacity = 1,
-        label = popup_content, ############################# replaced popup
+        label = popup_content, 
         group = "main_points"
       ) |>
       # Add highlight layer (initially invisible)
@@ -85,7 +80,7 @@ update_map_points <- function(map_proxy, data, ycol, column_y, threshold, time_a
         color = "white",
         fillOpacity = 0,
         opacity = 0,
-        label = popup_content, #################################
+        label = popup_content, 
         group = "highlight_points"
       ) |>
       addLegend(
@@ -106,10 +101,10 @@ update_map_points <- function(map_proxy, data, ycol, column_y, threshold, time_a
     pal_col <- RColorBrewer::brewer.pal(length(levels(ycol_labs)), "RdYlBu")
 
     # Use inverted color scale if not "Feuchtezahl" or "Reaktionszahl"
-    if (!(column_y %in% c("feuchtezahl", "reaktionszahl"))) {
+    if (!(column_y %in% c("feuchtigkeit", "reaktion"))) {
       pal_col <- rev(pal_col)
-    } 
-    
+    }
+
     pal <- colorFactor(palette = pal_col, domain = ycol_labs)
     
     
@@ -133,7 +128,7 @@ update_map_points <- function(map_proxy, data, ycol, column_y, threshold, time_a
         stroke = FALSE,
         fillOpacity = 1, 
         opacity = 1,
-        label = popup_content, ############################# replaced popup
+        label = popup_content, 
         group = "main_points"
       ) |>
       # Add highlight layer (initially invisible)
@@ -144,7 +139,7 @@ update_map_points <- function(map_proxy, data, ycol, column_y, threshold, time_a
         color = "white",
         fillOpacity = 0,
         opacity = 0,
-        label = popup_content, #################################
+        label = popup_content, 
         group = "highlight_points"
       ) |>
       addLegend(
@@ -225,9 +220,9 @@ update_map_polygons <- function(map_proxy, data, ycol, n_obs, column_y, n_classe
     
     bivariate_palette <- COLOR_CONFIG$bivariate_palette
     
-    if (!(column_y %in% c("feuchtezahl", "reaktionszahl"))) { ##############################################################????????????
+    if (!(column_y %in% c("feuchtigkeit", "reaktion"))) {
       bivariate_palette <- rev(bivariate_palette)
-    } 
+    }
     
     
     bivariate_matrix <- bivariate_matrix_alpha(
@@ -290,6 +285,11 @@ add_color_scale <- function(threshold, input_t, col_y, data, type_col){
       
       pal_col[3] <- colorRampPalette(c(pal_col[3], "yellow"))(3)[2] #sandybrown, lightsalmon, gold
       #pal_col[pal_col == "#FFFFBF"] <- darken("#FFFFBF", amount = 0.03) #darken just the yellow so it is visible on the white background
+     
+      # Use inverted color scale if not "Feuchtezahl" or "Reaktionszahl"
+      if (!(col_y %in% c("feuchtigkeit", "reaktion"))) {
+        pal_col <- rev(pal_col)
+      }
       
     if (type_col=="light"){
         pal_col <- lighten(pal_col, amount = 0.2)

@@ -50,7 +50,6 @@ shinyServer(function(input, output) {
 
       # Get column values
       ycol <- get_column_values(geodata_i, input$column_y)
-      print(input$time_a) # make condition that says it contains delta and ignores the rest
 
       # Update map with points, different thresholds for delta and historic/resurvey
       if (input$time_a == "delta") {leafletProxy("map") |>
@@ -75,71 +74,10 @@ shinyServer(function(input, output) {
         }
       }
 
-    ranges <- reactive({
-      browse()
-      all_features <- input$map_draw_all_features
-      features <- all_features$features
-      coords <- map(features, \(x)x$geometry$coordinates[[1]])
-      map(coords, \(x) {
-        x |>
-          map(\(y)c(y[[1]], y[[2]])) |>
-          do.call(rbind, args = _) |>
-          apply(2, range)
-      })
-    })
-    # sqft_inbounds <- reactive({
-    #   if (length(ranges()) > 0) {
-    #     ranges <- ranges()[[1]]
-    #     lat <- ranges[, 2]
-    #     lng <- ranges[, 1]
-    #     geodata_i() |>
-    #       filter(
-    #         lange > min(lng),
-    #         lange < max(lng),
-    #         breite > min(lat),
-    #         breite < max(lat)
-    #       )
-    #   } else {
-    #     geodata_i()[FALSE, ]
-    #   }
-    # })
-    # sqft_renamed <- reactive({
-    #   geodata_i() |>
-    #     rename(column_y = input$column_y) #|>
-    #     #rename(agg = input$aggregation)
-    # })
-    # sqft_inbounds_renamed <- reactive({
-    #   sqft_inbounds() |>
-    #     rename(column_y = input$column_y)# |>
-    #     #rename(agg = input$aggregation)
-    # })
-
     data_i <- reactive({
       geodata_i() |>
         rename(column_y = input$column_y)
     })
-    # selected_object <- reactiveVal("") ###################################################################################
-    # observeEvent(input$map_shape_click, {
-    #   loc_list <- input$map_shape_click
-    #   # print("loc_list:")
-    #   # print(loc_list)
-    #   # print("------------------")
-    #   geodata_i <- select_dataset(geodata, input$aggregation, input$time_a)
-    #   # print("geodata_i:")
-    #   # print(geodata_i)
-    #   # print("------------------")
-    #   loc <- st_point(c(loc_list$lng, loc_list$lat)) |>
-    #     st_sfc(crs = 4326)
-    #   # print("loc:")
-    #   # print(loc)
-    #   # print("------------------")
-    #   selected_object_str <- as.vector(geodata_i[loc, input$aggregation, drop = TRUE])
-    #   # print("selected_object_str:")
-    #   # print(selected_object_str)
-    #   # print("------------------")
-    #   selected_object(selected_object_str)
-    #   print(selected_object_str)
-    # })
 
     output$scatterplot <- renderPlotly({
       
@@ -209,80 +147,7 @@ shinyServer(function(input, output) {
 
       }
 
-      # fig <- create_base_scatter(sqft_renamed(), "meereshohe", "column_y") |>
-      #   add_trace(
-      #     data = sqft_inbounds_renamed(),
-      #     color = "",
-      #     marker = list(
-      #       color = "rgba(255,255,255,0)",
-      #       line = list(color = mycols$drawing$rgba_string, width = 2)
-      #     ),
-      #     name = "in der Auswahl"
-      #   )
-
-      # if (selected_object() != "") {
-      #   grassland_inpolygon <- grassland_renamed()[grassland_renamed()$agg == selected_object(), ]
-      #   fig <- fig |>
-      #     add_trace(
-      #       data = grassland_inpolygon,
-      #       color = "",
-      #       marker = list(
-      #         color = "rgba(255,255,255,0)",
-      #         line = list(color = mycols$selected_polygon$rgba_string, width = 2)
-      #       ),
-      #       name = "in polygon"
-      #     )
-      # }
-
-      # fig |>
-      #   layout(
-      #     hovermode = FALSE,
-      #     clickmode = "none",
-      #     yaxis = list(title = paste0(clean_names(input$column_y))),
-      #     xaxis = list(title = "Meereshöhe (m ü.M.)"),
-      #    # modebar = get_modebar_config()
-      #   )
+  
     })
   })
 })
-
-
-
-
-
-
-# observe({
-#   geodata_i <- geodata_i()
-#   geodata_i <- geodata_i[!is.na(geodata_i$altitude), ]
-#
-#   ycol <- get_column_values(geodata_i, input$column_y)
-#   #ycol <- input$column_y
-#   output$scatterplot <- renderPlotly({
-#     plot_ly(
-#       data = geodata_i,
-#       x = ~altitude,
-#       y = ycol, #label hier verdoppelt worden ?
-#       type = "scatter",
-#       mode="markers",
-#       name= "alle Punkte"
-#     )|>
-#       layout(yaxis = list(
-#         title = clean_names(input$column_y),
-#         showticklabels = TRUE
-#         #range = c(-5, 5),
-#         #autorange = F, # TODO: beim anzeigen stimmt die range der y achse nicht - sowas wie ylim aber hier?
-#         # - kann nachher die information überschireben werden sodass meine änderungen hier nicht wirken?
-#         #scaleanchor = F #NULL?
-#         #scaleratio=10
-#         #rangemode="normal"
-#         #anchor="free"
-#       ),
-#       xaxis = list(
-#         title = "Meereshöhe (M.ü.M.)",
-#         showticklabels = TRUE
-#         #autorange = T,
-#         #range = c(100,2900),
-#         #scaleanchor = F
-#       )
-#       )
-
