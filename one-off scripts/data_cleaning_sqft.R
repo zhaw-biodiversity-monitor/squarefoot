@@ -25,8 +25,10 @@
 
 
 ## combine data from two data files
-data_1 <- read.csv("C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/raw data/SqFt_HP_env.csv", sep =";") #yaelh. hedd
-data_2 <- read.csv("C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/raw data/PAG_dDiv.csv", sep=";")
+# data_1 <- read.csv("C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/raw data/SqFt_HP_env.csv", sep =";") #yaelh. hedd
+# data_2 <- read.csv("C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/raw data/PAG_dDiv.csv", sep=";")
+data_1 <- read.csv("raw data/SqFt_HP_env.csv", sep =";") #yaelh. hedd
+data_2 <- read.csv("raw data/PAG_dDiv.csv", sep=";")
 
 names(data_1)
 # length(data_1$PAG)
@@ -54,7 +56,8 @@ merged_data_subset <- merged_data[ , !(names(merged_data) %in% c("sla_HP", "heig
                                                                   "dTherophyte", "dGeophyte", "dHemicryptophyte", "dHerbaceous_chamaephyte", "dsla", "dplant_heigt", "dseed_mass"))]
 
 
-write.csv(merged_data_subset, "C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/one-off scripts/Squarefoot_data.csv", row.names = FALSE)
+#write.csv(merged_data_subset, "C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/one-off scripts/Squarefoot_data.csv", row.names = FALSE)
+write.csv(merged_data_subset, "one-off scripts/Squarefoot_data.csv", row.names = FALSE)
 
 
 ###########################################################################################
@@ -172,7 +175,8 @@ dataset_long$Center_x_coordinate <- st_coordinates(df_swiss)[,1]
 dataset_long$Center_y_coordinate <- st_coordinates(df_swiss)[,2]
 
 
-write.csv(dataset_long,"C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/appdata/Squarefoot_data_long.csv", row.names = FALSE)
+#write.csv(dataset_long,"C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/appdata/Squarefoot_data_long.csv", row.names = FALSE)
+write.csv(dataset_long,"appdata/Squarefoot_data_long.csv", row.names = FALSE)
 
 
 

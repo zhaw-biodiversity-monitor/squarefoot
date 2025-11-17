@@ -3,8 +3,16 @@
 
 #threshold <- read_csv("appdata/thresholds.csv")
 library(readxl) 
-threshold <- read_xlsx("appdata/threshold_definitions_de.xlsx", sheet="Schwellenwerte")##########################################threshold_definitions_eng.xlsx
+threshold_delta <- read_xlsx("appdata/threshold_definitions_delta_de.xlsx", sheet="Schwellenwerte")
+threshold_res_hist <- read_xlsx("appdata/threshold_definitions_res_hist_de.xlsx", sheet="Schwellenwerte")
 
+select_dataset <-function(list_of_datasets,
+                          selected_aggregation,
+                          selected_time,
+                          sep = "_") {
+  layer_name <- paste(selected_aggregation, selected_time, sep = sep)
+  na.omit(list_of_datasets[[layer_name]])
+}
 
 #' Load all layers from a GeoPackage file
 #' @param file Path to the GeoPackage file
@@ -15,24 +23,24 @@ load_geodata <- function(file = DATA_CONFIG$gpkg_path, exception = NA) {
   layer_names <- layer_names[!(layer_names %in% exception)]
   data_geo_sqft <- sapply(layer_names, \(x)st_read(file, x), simplify = FALSE)
   
-  historisch_list <- data_geo_sqft[grep("historisch$", names(data_geo_sqft))] # get time as additional level of the data organisation
-  resurvey_list <- data_geo_sqft[grep("resurvey$", names(data_geo_sqft))]
-  delta_list <- data_geo_sqft[grep("delta$", names(data_geo_sqft))]
-  
-  old_names <- names(historisch_list)
-  new_names <- sub("_historisch$", "", old_names) 
-  names(historisch_list) <- new_names
-  
-  old_names <- names(resurvey_list)
-  new_names <- sub("_resurvey$", "", old_names) 
-  names(resurvey_list) <- new_names
-  
-  old_names <- names(delta_list)
-  new_names <- sub("_delta$", "", old_names) 
-  names(delta_list) <- new_names
-  
-  geodata <- list(historisch = historisch_list, resurvey = resurvey_list, delta = delta_list)
-  return(geodata)
+  # historisch_list <- data_geo_sqft[grep("historisch$", names(data_geo_sqft))] # get time as additional level of the data organisation
+  # resurvey_list <- data_geo_sqft[grep("resurvey$", names(data_geo_sqft))]
+  # delta_list <- data_geo_sqft[grep("delta$", names(data_geo_sqft))]
+  # 
+  # old_names <- names(historisch_list)
+  # new_names <- sub("_historisch$", "", old_names) 
+  # names(historisch_list) <- new_names
+  # 
+  # old_names <- names(resurvey_list)
+  # new_names <- sub("_resurvey$", "", old_names) 
+  # names(resurvey_list) <- new_names
+  # 
+  # old_names <- names(delta_list)
+  # new_names <- sub("_delta$", "", old_names) 
+  # names(delta_list) <- new_names
+  # 
+  # geodata <- list(historisch = historisch_list, resurvey = resurvey_list, delta = delta_list)
+  # return(geodata)
 }
 
 #' Load dataset information

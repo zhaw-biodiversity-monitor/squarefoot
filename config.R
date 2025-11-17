@@ -32,21 +32,21 @@ UI_CONFIG <- list(
   ),
   column_options = c(
     "Artenreichtum" = "anzahl_arten",
-    "Mittlere Temperaturzahl (x–y)" = "temperatur",
-    "Mittlere Lichtzahl (x–y)" = "licht",
-    "Mittlere Feuchtezahl (x–y)" = "feuchtigkeit",
-    "Mittlere Reaktionszahl (x–y)" = "reaktion",
-    "Mittlere Nährstoffzahl (x–y)" = "na0ehrstoff",
-    "Mittlere Konkurrenzstrategie (0–1)" = "konkurrenzstrategie",
-    "Mittlere Ruderalstrategie (0–1)" = "ruderalstrategie",
-    "Mittlere Stresszahl (0–3)" = "stresszahl",
-    "Mittlere Mahdverträglichkeitszahl (1–5)" = "mahdvertra0eglichkeit",
     "Phylogenetische Diversität" = "phylogenetische_diversita0et",
-    "Funktionale Diversität" = "funktionale_diversita0et",
+      "Funktionale Diversität" = "funktionale_diversita0et",
     "Funktionale Diversität spezifische Blattfläche" = "funktionale_diversita0et_spezifische_blattfla0eche",
     "Funktionale Diversität Samengewicht" = "funktionale_diversita0et_samengewicht",
     "Funktionale Diversität Höhe" = "funktionale_diversita0et_ho0ehe",
+    "Mittlere Temperaturzahl (x–y)" = "temperatur",
+    "Mittlere Nährstoffzahl (x–y)" = "na0ehrstoff",    
+    "Mittlere Reaktionszahl (x–y)" = "reaktion",    
+    "Mittlere Feuchtezahl (x–y)" = "feuchtigkeit",
+    "Mittlere Lichtzahl (x–y)" = "licht",    
+    "Mittlere Mahdverträglichkeitszahl (1–5)" = "mahdvertra0eglichkeit",
     "Mittlere Hemerobiezahl (1-5)" = "hemerobiezahl",
+    "Mittlere Stresszahl (0–1)" = "stresszahl",
+    "Mittlere Konkurrenzstrategie (0–1)" = "konkurrenzstrategie",
+    "Mittlere Ruderalstrategie (0–1)" = "ruderalstrategie",
     "Anteil Deckung Poaceae" = "anteil_deckung_poaceae",
     "Anteil Deckung Krautartige" = "anteil_deckung_krautartige",
     "Anteil Deckung  Cyperaceae & Juncaceae" = "anteil_deckung_cyperaceae_und_juncaceae"
@@ -75,22 +75,23 @@ UI_CONFIG <- list(
   # ),
 
   
-  time_aspect = c("historisch" = "historisch", "resurvey" = "resurvey", "Differenz" = "delta")
+  time_aspect = c("historisch (Jahre 1884 - 1931)" = "historisch",
+                  "resurvey (Jahre 2021, 2022)" = "resurvey", 
+                  "Differenz" = "delta")
   #time = c("historic", "resurvey", "delta")
 )
 
 # Color Configuration
 COLOR_CONFIG <- list(
-  # drawing = list(
-  #   rgba_string = "rgba(0, 51, 255, 1)",
-  #   hex = "#0033FF"
-  # ),
-  # selected_polygon = list(
-  #   rgba_string = "rgba(255, 48, 0, 1)",
-  #   hex = "#ff3000"
-  # ),
   bivariate_palette = RColorBrewer::brewer.pal(3, "RdYlBu")
+  # library(scales)
+  # show_col(bivariate_palette)
 ) 
+COLOR_CONFIG_5 <- list(
+  bivariate_palette = RColorBrewer::brewer.pal(5, "RdYlBu")
+  # library(scales)
+  # show_col(bivariate_palette)
+)
 # Color definitions
 mycols <- list(
   drawing = list(

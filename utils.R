@@ -136,3 +136,52 @@ create_legend <- function(bivariate_matrix, attribute_y = "Attribute Y", include
     tags$div(y_axis_div, matrix_div, empty_div, x_axis_div, class = "container2"),
   )
 }
+
+
+create_legend_5 <- function(bivariate_matrix, attribute_y = "Attribute Y", include_css = "appdata/www/mycss.css") {
+  
+  n_row <- nrow(bivariate_matrix)
+  n_col <- ncol(bivariate_matrix)
+  
+  # Convert matrix to a long-format tibble
+  bivariate_matrix_df <- tibble(
+    colour = as.vector(bivariate_matrix),
+    row = rep(rev(seq_len(n_row)), times = n_col),
+    col = rep(seq_len(n_col), each = n_row)
+  ) %>% 
+    arrange(row)
+  
+  # Generate CSS classes for each cell
+  row_col_style <- bivariate_matrix_df %>%
+    pmap_chr(~ paste0(".row-", ..2, ".col-", ..3, 
+                      "{background-color: ", ..1, ";}")) %>%
+    paste(collapse = " ") %>%
+    tags$style()
+  
+  # Y-axis label
+  y_axis_div <- tags$div(class = "ylabel", paste(clean_names(attribute_y), "→"))
+  
+  # Matrix div (cells)
+  matrix_div <- bivariate_matrix_df %>%
+    pmap(~ tags$div(
+      tags$div(paste(..2, ..3, sep = "-"), class = "tooltip"), 
+      class = c("val", paste0("row-", ..2), paste0("col-", ..3))
+    )) %>%
+    tags$div(
+      class = "matrix", 
+      style = paste0(
+        "display: grid; grid-template-columns: repeat(", n_col, ", 50px); grid-auto-rows: 50px;"
+      )
+    )
+  
+  # Empty divs / X-axis
+  empty_div <- tags$div(class = "xlabel")
+  x_axis_div <- tags$div(class = "xlabel", "# Beobachtungen →")
+  
+  # Combine all into HTML
+  tags$html(
+    includeCSS(include_css),
+    row_col_style,
+    tags$div(y_axis_div, matrix_div, empty_div, x_axis_div, class = "container2")
+  )
+}

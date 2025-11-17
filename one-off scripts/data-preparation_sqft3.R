@@ -1,5 +1,5 @@
 
-setwd("C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/") #yaelh und hedd 
+#setwd("C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/") #yaelh und hedd 
 
 ################################################################################################################
 ## Load Libraries and construct funtions
@@ -418,7 +418,7 @@ data_measurements_sqft <- read_csv(csv_path_sqft)
 
 data_geo_sqft_2 <- load_geodata_2(file = gpkg_path_sqft, exception = NA)
 
-
+names(data_geo_sqft$hex10_historisch)
 
 plot(data_measurements_sqft$altitude, data_measurements_sqft$anzahl_arten, xlab="Altitude", ylab="Anzahl Arten")
 plot(data_measurements_sqft$altitude, data_measurements_sqft$phylogenetische_diversitat, xlab="Altitude", ylab="Anzahl Arten")

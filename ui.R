@@ -24,7 +24,7 @@ time_a <- c("historisch", "resurvey", "delta")
 # Define UI for application
 shinyUI(fluidPage(
   tags$script(src = "myjs.js"),
-  titlePanel("Vegetationsaufnahmen der Schweiz"),
+  titlePanel("Squarefoot Projekt"),
   
   sidebarLayout(
     sidebarPanel(
@@ -36,11 +36,11 @@ shinyUI(fluidPage(
       
       selectInput(
         "column_y",
-        "Jährlicher Trend von",
+        "Trend von",
         UI_CONFIG$column_options
       ),
       
-      selectInput( ##########################################
+      selectInput(
           "time_a",
           "Zeiteinheit",
           UI_CONFIG$time_aspect
