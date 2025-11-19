@@ -1,12 +1,41 @@
 .ylabel {
+    grid-column: 1 / 2; /* first column */
+    grid-row: 1 / 2;    
     writing-mode: vertical-lr;
-    -webkit-transform: rotate(-180deg);
-    -moz-transform: rotate(-180deg);
+    transform: rotate(-180deg);
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    font-size: medium;
+    background-color: rgba(255, 255, 255, 0.8);
 }
 
-.ylabel, .xlabel{
-    background-color: rgba(255, 255, 255, 1);
+.ylabel_2 {
+    grid-column: 2 / 3; /* second column */
+    grid-row: 1 / 2;    
+    writing-mode: vertical-lr;
+    transform: rotate(-180deg);
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
     font-size: medium;
+    width: 0;
+}
+
+.matrix {
+    grid-column: 3 / 4; /* third column */
+    grid-row: 1 / 2;
+    display: grid;
+    grid-template-columns: repeat(3, 50px);
+    grid-auto-rows: 50px;
+    align-content: end;
+}
+
+.xlabel {
+    grid-column: 3 / 4; /* third column, below matrix */
+    grid-row: 2 / 3;
+    font-size: medium;
+    background-color: rgba(255, 255, 255, 0.8);
 }
 
 .val {
@@ -24,13 +53,10 @@
     visibility: visible;
 }
 
-.container2{
+.container2 {
     display: grid;
-    grid-template-columns: auto auto;
-    background-color: rgba(255, 255, 255, 0.4);
+    grid-template-columns: auto auto 1fr;
+    grid-template-rows: 1fr auto; 
+    gap:0
 }
 
-.matrix{
-    display: grid; 
-    align-content: end;
-}

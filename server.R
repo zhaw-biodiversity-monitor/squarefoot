@@ -143,7 +143,7 @@ shinyServer(function(input, output) {
                       type="scatter",
                       mode="markers",
                       marker=list(color = ~plot_color),
-                      name="aggregation")
+                      name="Aggregation")
 
       }
 

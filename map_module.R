@@ -104,10 +104,12 @@ update_map_points <- function(map_proxy, data, ycol, column_y, threshold, time_a
     if (!(column_y %in% c("feuchtigkeit", "reaktion"))) {
       pal_col <- rev(pal_col)
     }
-
     pal <- colorFactor(palette = pal_col, domain = ycol_labs)
+
+    pal_col_matrix <- matrix(pal_col, nrow=5, ncol=1)
     
-    
+    legend_html <- create_legend_punkte(pal_col_matrix, column_y)
+
     popup_content <- paste(
       paste(clean_names(column_y), format(round(ycol, 3)), sep = ":"),
       #paste("Anzahl Erhebungen", n_obs, sep = ":"),
@@ -118,6 +120,7 @@ update_map_points <- function(map_proxy, data, ycol, column_y, threshold, time_a
       clearShapes() |>
       clearMarkers() |> 
       clearControls() |>
+      addControl(legend_html, position = "bottomleft", className = "")|>
       # Add main points layer
       addCircleMarkers(
         data = data,
@@ -141,14 +144,7 @@ update_map_points <- function(map_proxy, data, ycol, column_y, threshold, time_a
         opacity = 0,
         label = popup_content, 
         group = "highlight_points"
-      ) |>
-      addLegend(
-        "bottomright",
-        pal = pal,
-        values = ycol_labs,
-        title = clean_names(column_y),
-        opacity = 1
-      )
+      ) 
     }
 }
 
@@ -160,28 +156,33 @@ update_map_points <- function(map_proxy, data, ycol, column_y, threshold, time_a
 #' @param column_y The name of the column for the legend
 update_map_polygons <- function(map_proxy, data, ycol, n_obs, column_y, n_classes = 3,threshold, time_aspect) {
   if (time_aspect == "delta"){ #delta with thresholds
-    # threshold_w <- threshold[threshold$Parameter == column_y, ] |>
-    #   pivot_longer(-Parameter)
-    
+    #browser()
+    threshold_w <- threshold[threshold$Parameter == column_y, ] |>
+       pivot_longer(-Parameter)
+    threshold_w <- threshold_w[2:3,] #merge the two threshold at the extremes colors to have only 3 color groups
+
     fac_levels <- expand_grid(seq_len(n_classes), seq_len(n_classes)) |>
       apply(1, paste, collapse = "-")
     
     n_obs_interval <- classIntervals(n_obs, n_classes, "jenks")
-    ycol_interval <- classIntervals(ycol, n_classes, "jenks")
-    
+    #ycol_interval <- classIntervals(ycol, n_classes, "jenks")
+    ycol_labs <- cut(ycol, c(-Inf,threshold_w$value,Inf),labels = c(1,2,3))
+
     n_obs_grp <- findCols(n_obs_interval)
-    ycol_grp <- findCols(ycol_interval)
+    #ycol_grp <- findCols(ycol_interval)
+    ycol_grp <- ycol_labs
     
     data$grp <- factor(paste(n_obs_grp, ycol_grp, sep = "-"), levels = fac_levels)
     
-    bivariate_palette <- COLOR_CONFIG$bivariate_palette
+    bivariate_palette <- RColorBrewer::brewer.pal(5, "RdYlBu")
+    bivariate_palette <- bivariate_palette[c(1,3,5)] # take blue yellow and red instead of the standard light blue orange and yellow when inputting 3 classes in colorbrewer
     bivariate_matrix <- bivariate_matrix_alpha(
       bivariate_palette,
       n_classes,
       alpha_range = c(.40, 0.95)
     )
     
-    legend_html <- create_legend(bivariate_matrix, column_y)
+    legend_html <- create_legend_delta_polygone(bivariate_matrix, column_y)
     pal_col <- as.vector(bivariate_matrix)
     pal <- colorFactor(pal_col, levels = fac_levels, alpha = TRUE)
     
@@ -206,31 +207,35 @@ update_map_polygons <- function(map_proxy, data, ycol, n_obs, column_y, n_classe
       )
   }
   else{ # resurvey or historic
-    # browser()
+    threshold_w <- threshold[threshold$Parameter == column_y, ] |>
+      pivot_longer(-Parameter)
+    threshold_w <- threshold_w[2:3,] #merge the two threshold at the extremes colors to have only 3 color groups
+    
     fac_levels <- expand_grid(seq_len(n_classes), seq_len(n_classes)) |>
       apply(1, paste, collapse = "-")
     
     n_obs_interval <- classIntervals(n_obs, n_classes, "jenks")
-    ycol_interval <- classIntervals(ycol, n_classes, "jenks")
+    #ycol_interval <- classIntervals(ycol, n_classes, "jenks")
+    ycol_labs <- cut(ycol, c(-Inf,threshold_w$value,Inf),labels = c(1,2,3))
     
     n_obs_grp <- findCols(n_obs_interval)
-    ycol_grp <- findCols(ycol_interval)
+    #ycol_grp <- findCols(ycol_interval)
+    ycol_grp <- ycol_labs
     
     data$grp <- factor(paste(n_obs_grp, ycol_grp, sep = "-"), levels = fac_levels)
     
-    bivariate_palette <- COLOR_CONFIG$bivariate_palette
-    
+    bivariate_palette <- RColorBrewer::brewer.pal(5, "RdYlBu")
+    bivariate_palette <- bivariate_palette[c(1,3,5)] # take blue yellow and red instead of the standard light blue orange and yellow when inputting 3 classes in colorbrewer
+    # Use inverted color scale if not "Feuchtezahl" or "Reaktionszahl"
     if (!(column_y %in% c("feuchtigkeit", "reaktion"))) {
       bivariate_palette <- rev(bivariate_palette)
     }
-    
-    
     bivariate_matrix <- bivariate_matrix_alpha(
       bivariate_palette,
       n_classes,
       alpha_range = c(.40, 0.95)
     )
-    
+
     legend_html <- create_legend(bivariate_matrix, column_y)
     pal_col <- as.vector(bivariate_matrix)
     pal <- colorFactor(pal_col, levels = fac_levels, alpha = TRUE)

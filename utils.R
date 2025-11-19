@@ -98,11 +98,81 @@ bivariate_matrix_alpha <-
 
 
 create_legend <- function(bivariate_matrix, attribute_y = "Attribute Y", include_css = "appdata/www/mycss.css") {
-
-
   stopifnot(nrow(bivariate_matrix) == ncol(bivariate_matrix))
   n_classes <- nrow(bivariate_matrix)
 
+  bivariate_matrix_df <- tibble(
+    colour = as.vector(bivariate_matrix),
+    row = rep(rev(seq_len(n_classes)), times = n_classes), # "row": a column, needs to be 1 to 5 for all the five colours
+    col = rep(seq_len(n_classes), each = n_classes) # "col: a column, needs to be 1 for all colours
+  ) |>
+    arrange(row)
+  row_col_style <- bivariate_matrix_df |> #rearrange the palette but maybe not needed as we do not have a 3x3 grid
+    pmap_chr(\(colour, row, col){
+      paste0(".row-", row, ".col-", col, "{", "background-color: ", colour, ";", "}")
+    }) |>
+    paste(collapse = " ") |>
+    tags$style()
+
+
+
+  y_axis_div <- tags$div(class = "ylabel", paste(clean_names(attribute_y),"→")) #<div class="ylabel">Anzahl Arten →</div> # ahnzahl arten und mit 0 und pfeil nach oben, bei delta anzahl arten mit 0 in mitte und +/- pfeile nach oben und unten
+  matrix_div <- bivariate_matrix_df |> #?????????
+    pmap(\(colour, row, col){
+      tags$div(tags$div(paste(row, col, sep = "-"), class = "tooltip"), class = c("val", paste0("row-", row), paste0("col-", col)))
+    }) |>
+    tags$div(class = "matrix", style = "grid-template-columns: repeat(3, 50px); grid-auto-rows: 50px") #hardcoded, remove
+
+  empty_div <- tags$div(class = "xlabel") #<div class="xlabel"></div>
+  x_axis_div <- tags$div(class = "xlabel", "# Beobachtungen→") #<div class="xlabel"># Beobachtungen→</div>  -- weglah
+
+  tags$html(
+    includeCSS(include_css),
+    row_col_style,
+    tags$div(y_axis_div, matrix_div, empty_div, x_axis_div, class = "container2"),
+  )
+}
+
+create_legend_punkte <- function(bivariate_matrix, attribute_y = "Attribute Y", include_css = "appdata/www/mycss.css") {
+
+  #stopifnot(nrow(bivariate_matrix) == ncol(bivariate_matrix))
+  n_classes <- nrow(bivariate_matrix)
+  
+  bivariate_matrix_df <- tibble( 
+    colour = as.vector(bivariate_matrix),
+    row = seq_len(n_classes),
+    col = rep(1, n_classes) 
+  ) |>
+    arrange(desc(row))
+  row_col_style <- bivariate_matrix_df |>
+    pmap_chr(\(colour, row, col){
+      paste0(".row-", row, ".col-", col, "{", "background-color: ", colour, ";", "}")
+    }) |>
+    paste(collapse = " ") |>
+    tags$style()
+  
+  y_axis_div <- tags$div(class = "ylabel", paste(clean_names(attribute_y),"→"))
+  matrix_div <- bivariate_matrix_df |>
+    pmap(\(colour, row, col){
+      tags$div(tags$div(paste(row, col, sep = "-"), class = "tooltip"), class = c("val", paste0("row-", row), paste0("col-", col)))
+    }) |>
+    tags$div(class = "matrix", style = "grid-template-columns: repeat(1, 35px); grid-auto-rows: 35px") #hardcoded, remove
+  
+  empty_div <- tags$div(class = "xlabel")
+  # x_axis_div <- tags$div(class = "xlabel", "# Beobachtungen→")
+  
+  tags$html(
+    includeCSS(include_css),
+    row_col_style,
+    tags$div(y_axis_div, matrix_div, empty_div, class = "container2"),
+  )
+}
+
+create_legend_delta_polygone <- function(bivariate_matrix, attribute_y = "Attribute Y", include_css = "appdata/www/mycss.css") {
+ 
+  stopifnot(nrow(bivariate_matrix) == ncol(bivariate_matrix))
+  n_classes <- nrow(bivariate_matrix)
+  
   bivariate_matrix_df <- tibble(
     colour = as.vector(bivariate_matrix),
     row = rep(rev(seq_len(n_classes)), times = n_classes),
@@ -116,72 +186,27 @@ create_legend <- function(bivariate_matrix, attribute_y = "Attribute Y", include
     paste(collapse = " ") |>
     tags$style()
 
-
-
-  y_axis_div <- tags$div(class = "ylabel", paste(clean_names(attribute_y),"→"))
+  y_axis_div <- tags$div(class = "ylabel", tags$br(),paste(clean_names(attribute_y)))#, style = "text-align: left;")
+  y_axis_div_2 <- tags$div(class = "ylabel_2", HTML("  &nbsp  &nbsp - &nbsp; ← &nbsp; 0 &nbsp; → &nbsp; +"))#, style = "text-align: left;")
+  
+  # y_axis_div_combined <- tags$div(
+  #   class = "ylabel-container",
+  #   y_axis_div,
+  #   y_axis_div_2
+  # )
+  
   matrix_div <- bivariate_matrix_df |>
     pmap(\(colour, row, col){
       tags$div(tags$div(paste(row, col, sep = "-"), class = "tooltip"), class = c("val", paste0("row-", row), paste0("col-", col)))
     }) |>
     tags$div(class = "matrix", style = "grid-template-columns: repeat(3, 50px); grid-auto-rows: 50px") #hardcoded, remove
-
+  
   empty_div <- tags$div(class = "xlabel")
   x_axis_div <- tags$div(class = "xlabel", "# Beobachtungen→")
-
-
-
+  
   tags$html(
     includeCSS(include_css),
     row_col_style,
-    tags$div(y_axis_div, matrix_div, empty_div, x_axis_div, class = "container2"),
-  )
-}
-
-
-create_legend_5 <- function(bivariate_matrix, attribute_y = "Attribute Y", include_css = "appdata/www/mycss.css") {
-  
-  n_row <- nrow(bivariate_matrix)
-  n_col <- ncol(bivariate_matrix)
-  
-  # Convert matrix to a long-format tibble
-  bivariate_matrix_df <- tibble(
-    colour = as.vector(bivariate_matrix),
-    row = rep(rev(seq_len(n_row)), times = n_col),
-    col = rep(seq_len(n_col), each = n_row)
-  ) %>% 
-    arrange(row)
-  
-  # Generate CSS classes for each cell
-  row_col_style <- bivariate_matrix_df %>%
-    pmap_chr(~ paste0(".row-", ..2, ".col-", ..3, 
-                      "{background-color: ", ..1, ";}")) %>%
-    paste(collapse = " ") %>%
-    tags$style()
-  
-  # Y-axis label
-  y_axis_div <- tags$div(class = "ylabel", paste(clean_names(attribute_y), "→"))
-  
-  # Matrix div (cells)
-  matrix_div <- bivariate_matrix_df %>%
-    pmap(~ tags$div(
-      tags$div(paste(..2, ..3, sep = "-"), class = "tooltip"), 
-      class = c("val", paste0("row-", ..2), paste0("col-", ..3))
-    )) %>%
-    tags$div(
-      class = "matrix", 
-      style = paste0(
-        "display: grid; grid-template-columns: repeat(", n_col, ", 50px); grid-auto-rows: 50px;"
-      )
-    )
-  
-  # Empty divs / X-axis
-  empty_div <- tags$div(class = "xlabel")
-  x_axis_div <- tags$div(class = "xlabel", "# Beobachtungen →")
-  
-  # Combine all into HTML
-  tags$html(
-    includeCSS(include_css),
-    row_col_style,
-    tags$div(y_axis_div, matrix_div, empty_div, x_axis_div, class = "container2")
+    tags$div(y_axis_div,y_axis_div_2, matrix_div, empty_div, x_axis_div, class = "container2"),
   )
 }
