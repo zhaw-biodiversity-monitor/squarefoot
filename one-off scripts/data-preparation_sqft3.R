@@ -18,6 +18,7 @@ delete_all_layers <- function(file) {
   sapply(st_layers(file)$name, \(x)st_delete(file, x), simplify = FALSE)
 }
 
+
 hexagonize <- function(hex, to_be_hexagonized, ..., .na_omit = TRUE, .do_union = TRUE) {
   joined <- st_join(hex, select(to_be_hexagonized, ...), largest = TRUE)
   if (.na_omit) joined <- na.omit(joined)
@@ -29,9 +30,13 @@ hexagonize <- function(hex, to_be_hexagonized, ..., .na_omit = TRUE, .do_union =
   return(joined)
 }
 
+ 
+#' also get all characters lowercase, get rid of duplicate underscores or overhanging ones 
+#' @param sqarefoot a dataframe 
+#' @param vals a list of columns to be aggregated
+#' @param by by what it should be aggregated - hexagonized grids
+#' @return a dataframe with renamed columns
 aggregate_squarefoot <- function(squarefoot, vals, by){
-  
-  # browser()
   squarefoot_vals <- squarefoot |> 
     ungroup() |> 
     (\(x)x[,vals])()
@@ -45,14 +50,31 @@ aggregate_squarefoot <- function(squarefoot, vals, by){
   cbind(by_squarefoot, st_drop_geometry(by))
 }
 
-
+#' encode umlaute to decode them later to keep them in the final visual without having them in the code
+#' also get all characters lowercase, get rid of duplicate underscores or overhanging ones 
+#' @param df a dataframe 
+#' @return a dataframe with renamed columns
+encode_clean_names <- function(df){
+  nm <- names(df)
+  nm <- tolower(nm)                        # lowercase
+  nm <- gsub("_+", "_", nm)                # collapse multiple underscores
+  nm <- gsub("^_|_$", "", nm)              # remove leading/trailing underscore
+  
+  umlaute <- c("ä" = "a0e", "ö" = "o0e", "ü" = "u0e")
+  nm <- str_replace_all(nm, umlaute)   # Encode special characters/umlaute
+  
+  names(df) <- nm
+  
+  return(df)
+  
+}
 
 ################################################################################################################
 ## Import Data
 ################################################################################################################
 
 
-## ↳ Generic Geodata
+## Generic Geodata
 ################################################################################################################
 
 BGR <- read_sf("appdata/biogreg/BiogeographischeRegionen/N2020_Revision_BiogeoRegion.shp") |>
@@ -74,39 +96,19 @@ schweiz <- read_sf("appdata/swissboundaries3d_2022-05_2056_5728.shp/SHAPEFILE_LV
 
 
 
-## ↳ squarefoot Data
+## squarefoot Data
 ################################################################################################################
 
 # output
 gpkg_path_squarefoot <- "appdata/vectors_squarefoot.gpkg"
 
-
-squarefoot <- read_csv("one-off scripts/Squarefoot_data_long.csv")
-#resurvey$dataset_id <- as.numeric(factor(resurvey$Time)) ########### 1 = delta, 3 = resurvey, 2 = historic
+# data
+squarefoot <- read_csv("one-off scripts/Squarefoot_data_long_ger.csv")
+#squarefoot$time <- as.numeric(factor(resurvey$Time)) # 1 = delta, 3 = resurvey, 2 = historic
 
 
 id_cols <- c("PAG")
 independent_vars <- c("Time","Precision")#, "Altitude")
-# dependent_vars <- c("Species_richness",
-#                    "Phylogenetic_diversity",
-#                    "Functional_diversity",
-#                    "Funct_div_spec_leaf_area",
-#                    "Funct_div_seed_mass",
-#                    "Funct_div_height",
-#                    "Temperature",
-#                    "Nutrient",
-#                    "Reaction",
-#                    "Moisture",
-#                    "Light",
-#                    "Moving_tolerance",
-#                    "EIV_Hemeroby",
-#                    "Cover_Poaceae",
-#                    "Cover_Forb",
-#                    "Cover_Cyp_Junc",
-#                    "CSR_Stress_tolerance",
-#                    "CSR_Disturbance_tolerance",
-#                    "CSR_Competitive_ability")
-
 dependent_vars <- c("Altitude",
                     "Anzahl_Arten",
                     "Phylogenetische_Diversität",
@@ -127,10 +129,7 @@ dependent_vars <- c("Altitude",
                     "Stresszahl",
                     "Ruderalstrategie",
                     "Konkurrenzstrategie")
-
 coordinate_cols <- c("Center_x_coordinate", "Center_y_coordinate") 
-
-
 
 
 # Quality Checks
@@ -140,58 +139,11 @@ stopifnot(dependent_vars %in% colnames(squarefoot) |> all())
 stopifnot(coordinate_cols %in% colnames(squarefoot) |> all())
 
 
-
-
-encode_clean_names <- function(df){
-  nm <- names(df)
-  nm <- tolower(nm)                        # lowercase
-  #nm <- gsub("[^a-z0-9]", "_", nm)        # replace non-alphanumeric with _
-  nm <- gsub("_+", "_", nm)                # collapse multiple underscores
-  nm <- gsub("^_|_$", "", nm)            # remove leading/trailing underscore
-  
-  umlaute <- c("ä" = "a0e", "ö" = "o0e", "ü" = "u0e")
-  nm <- str_replace_all(nm, umlaute)   # Encode special characters/umlaute
-  
-  names(df) <- nm
-
-  return(df)
-  
-}
-
-
-
-
-# # Replace underscores with spaces and capitalize
-# str_vec <- str_vec |>
-#   str_replace_all("_", " ") |>
-#   str_to_title()
-# 
-# # Optional: decode placeholders back to original umlauts
-# decode_umlaut <- function(vec, map) {
-#   for (char in names(map)) {
-#     vec <- str_replace_all(vec, fixed(map[char]), char)
-#   }
-#   vec
-# }
-# 
-# decoded <-  str_vec |>
-#   str_replace_all("a0e", "ä") |>
-#   str_replace_all("o0e", "ö") |>
-#   str_replace_all("u0e", "ü") |>
-#   str_replace_all("A0e", "Ä") |>
-#   str_replace_all("O0e", "Ö") |>
-#   str_replace_all("U0e", "Ü") |>
-#   str_to_title()
-# str_vec    # Cleaned with title case and placeholders
-# decoded    # Original umlauts restored
-
-
-
-
 squarefoot <- squarefoot[,c(id_cols,independent_vars,dependent_vars, coordinate_cols)]  |>
   filter(if_any(matches(coordinate_cols), \(x)!is.na(x))) |>
-  st_as_sf(coords = coordinate_cols, crs = 2056) #|>
-  #janitor::clean_names()
+  st_as_sf(coords = coordinate_cols, crs = 2056)
+
+# custom clean names for umlaute ä,ö und ü
 squarefoot <- encode_clean_names(squarefoot)
 
 cbind(st_drop_geometry(squarefoot),
@@ -199,45 +151,17 @@ cbind(st_drop_geometry(squarefoot),
   write_csv("appdata/squarefoot.csv")
 
 
-# #see some stats
-# squarefoot_df <- data.frame(squarefoot)
-# num_cols <- sapply(squarefoot_df, is.numeric)  # only numeric columns
-# summary_stats <- data.frame(
-#   mean = sapply(squarefoot_df[, num_cols], mean, na.rm = TRUE),
-#   min  = sapply(squarefoot_df[, num_cols], min, na.rm = TRUE),
-#   max  = sapply(squarefoot_df[, num_cols], max, na.rm = TRUE),
-#   median  = sapply(squarefoot_df[, num_cols], median, na.rm = TRUE)
-# )
-# summary_stats[-(1:3), ]
-# 
-# squarefoot_df_h <- squarefoot_df[squarefoot_df$time == "historic",]
-# squarefoot_df_r <- squarefoot_df[squarefoot_df$time == "resurvey",]
-# squarefoot_df_d <- squarefoot_df[squarefoot_df$time == "delta",]
-# 
-# squarefoot_df_h_mean <- mean(squarefoot_df_h$temperature)
-# squarefoot_df_r_mean <- mean(squarefoot_df_r$temperature)
-# 
-# 
-# plot(squarefoot_df_h$pag, squarefoot_df_h$temperature, col="red")
-# points(squarefoot_df_r$pag, squarefoot_df_r$temperature, col="blue")
-# abline(h=squarefoot_df_h_mean, col='red')
-# abline(h=squarefoot_df_r_mean, col='blue')
-
-
-
-#threshold <- read_xlsx("tmp_resurvey_2025-01_annual_trends_threshold_definitions.xlsx", "Schwellenwerte")
-
 ###############################################################################################################
 ## Aggregate and write Data
 ################################################################################################################
 
 
-## ↳ Prepare Spatial Aggregation Layers
+## Prepare Spatial Aggregation Layers
 ################################################################################################################
 
-hex5 <- st_make_grid(schweiz, 5000, square = FALSE) |>
-  st_as_sf() |>
-  mutate(hex5 = row_number())
+# hex5 <- st_make_grid(schweiz, 5000, square = FALSE) |>
+#   st_as_sf() |>
+#   mutate(hex5 = row_number())
 
 hex10 <- st_make_grid(schweiz, 10000, square = FALSE) |>
   st_as_sf() |>
@@ -247,41 +171,18 @@ hex20 <- st_make_grid(schweiz, 20000, square = FALSE) |>
   st_as_sf() |>
   mutate(hex20 = row_number())
 
-
-hex10_BGR <- hexagonize(hex10, BGR, DERegionNa)
-
 BGR <- BGR |>
   group_by(bgr = DERegionNa) |>
   summarise()
-
 
 kantone <- kantone |>
   group_by(kantone = NAME) |>
   summarise()
 
 
-
-## Aggregate Data to Polygon and export to gpkg
+## Aggregate Data to Polygons and export to gpkg
 ################################################################################################################
-# vals <- c("species_richness",
-#           "phylogenetic_diversity",
-#           "functional_diversity",
-#           "funct_div_spec_leaf_area",
-#           "funct_div_seed_mass",
-#           "funct_div_height",
-#           "temperature",
-#           "nutrient",
-#           "reaction",
-#           "moisture",
-#           "light",
-#           "moving_tolerance",
-#           "urbanization",
-#           "cover_poaceae",
-#           "cover_forb",
-#           "cover_cyp_junc",
-#           "csr_stress_tolerance",
-#           "csr_disturbance_tolerance",
-#           "csr_competitive_ability")
+
 vals <- c("altitude",
           "anzahl_arten",
           "phylogenetische_diversita0et",
@@ -302,6 +203,7 @@ vals <- c("altitude",
           "stresszahl",
           "ruderalstrategie",
           "konkurrenzstrategie")
+
 
 aggregate_write_aggregations <- function(squarefoot, vals, hex10, hex20, BGR, kantone, gpkg_path) {
 
@@ -332,28 +234,29 @@ aggregate_write_aggregations <- function(squarefoot, vals, hex10, hex20, BGR, ka
     st_transform(4326) |>
     write_sf(gpkg_path_squarefoot, paste0("punkte_", df_name), delete_layer = TRUE)
   
-  
   #layers <- tibble(layer_name = st_layers(gpkg_path_squarefoot)$name)
 }
 
 if(file.exists(gpkg_path_squarefoot))file.remove(gpkg_path_squarefoot)
 
+# split the data into the 3 different datasets according to the time column
 historisch <- squarefoot[squarefoot$time == "historic", ]
 resurvey <- squarefoot[squarefoot$time == "resurvey", ]
 delta <- squarefoot[squarefoot$time == "delta", ]
 
-
+# repeat this aggregation separately for every time dataset (historic, resurvey and delta)
 aggregate_write_aggregations(historisch, vals, hex10, hex20, BGR, kantone, gpkg_path_squarefoot)
 aggregate_write_aggregations(resurvey, vals, hex10, hex20, BGR, kantone, gpkg_path_squarefoot)
 aggregate_write_aggregations(delta, vals, hex10, hex20, BGR, kantone, gpkg_path_squarefoot)
 
 
 #######################################################################################################################################
-#check data
+#check data by loading it again from the saved gpkg file
 csv_path_sqft <- "appdata/squarefoot.csv"
 gpkg_path_sqft <- "appdata/vectors_squarefoot.gpkg"
 
 
+# from the file data_module:
 
 #' Load all layers from a GeoPackage file
 #' @param file Path to the GeoPackage file
@@ -365,10 +268,10 @@ load_geodata <- function(file = DATA_CONFIG$gpkg_path, exception = NA) {
   sapply(layer_names, \(x)st_read(file, x), simplify = FALSE)
 }
 
-#' Load all layers from a GeoPackage file
+#' Load all layers from a GeoPackage file - the data gets the time aspect as separate, additional level
 #' @param file Path to the GeoPackage file
 #' @param exception Layer names to exclude
-#' @return A list of sf objects
+#' @return 3 lists of sf objects - historic, resurvey and delta
 load_geodata_2 <- function(file = DATA_CONFIG$gpkg_path, exception = NA) {
   layer_names <- st_layers(file)$name
   layer_names <- layer_names[!(layer_names %in% exception)]
@@ -418,41 +321,5 @@ data_measurements_sqft <- read_csv(csv_path_sqft)
 
 data_geo_sqft_2 <- load_geodata_2(file = gpkg_path_sqft, exception = NA)
 
-names(data_geo_sqft$hex10_historisch)
 
-plot(data_measurements_sqft$altitude, data_measurements_sqft$anzahl_arten, xlab="Altitude", ylab="Anzahl Arten")
-plot(data_measurements_sqft$altitude, data_measurements_sqft$phylogenetische_diversitat, xlab="Altitude", ylab="Anzahl Arten")
-
-
-
-
-
-
-
-
-###############################################################################
-  
-historisch_list <- data_geo_sqft[grep("historisch$", names(data_geo_sqft))]
-resurvey_list <- data_geo_sqft[grep("resurvey$", names(data_geo_sqft))]
-delta_list <- data_geo_sqft[grep("delta$", names(data_geo_sqft))]
-
-
-old_names <- names(historisch_list)
-new_names <- sub("_historisch$", "", old_names) 
-names(historisch_list) <- new_names
-
-old_names <- names(resurvey_list)
-new_names <- sub("_resurvey$", "", old_names) 
-names(resurvey_list) <- new_names
-
-old_names <- names(delta_list)
-new_names <- sub("_delta$", "", old_names) 
-names(delta_list) <- new_names
-
-geodata <- list(historisch = historisch_list, resurvey = resurvey_list, delta = delta_list)
-i <- "historisch"
-geodata$i
-geodata[[i]]
-geodata[["historisch"]]
-#######################################################################################################################################
 
