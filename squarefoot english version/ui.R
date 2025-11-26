@@ -13,7 +13,7 @@ layers <- st_layers(gpkg_path)$name
 # Define UI for application
 shinyUI(fluidPage(
   tags$script(src = "myjs.js"),
-  titlePanel("Squarefoot Projekt"), # main title
+  titlePanel("Squarefoot Project"), # main title
   
   sidebarLayout(
     sidebarPanel( # left panel
@@ -25,13 +25,13 @@ shinyUI(fluidPage(
       
       selectInput( # variable to display panel
         "column_y", # name used inside the code - input$column_y used
-        "Trend von", # displayed in app
+        "Variable to display", # displayed in app
         UI_CONFIG$column_options # options to choose
       ),
       
       selectInput( # time aspect panel
           "time_a", # name used inside the code - input$time_a used
-          "Zeiteinheit", # displayed in app
+          "Time aspect", # displayed in app
           UI_CONFIG$time_aspect # options to choose
       ),
       

@@ -115,7 +115,7 @@ shinyServer(function(input, output) {
           layout(hovermode = TRUE,
               clickmode = "none",
               yaxis = list(title = paste0(clean_names(input$column_y))),
-              xaxis = list(title = "Altitude (m.a.s.?)")
+              xaxis = list(title = "Altitude (m a.s.l.)") #alternatively call it elevation?
               #plot_bgcolor = "darkgrey" # trying to adjust background color because the yellow points are not well visible - I changed the yellow to be darker in map_module/add_color_scale
             )
       }
@@ -152,7 +152,7 @@ shinyServer(function(input, output) {
           layout(hovermode = TRUE,
                  clickmode = "none",
                  yaxis = list(title = paste0(clean_names(input$column_y))),
-                 xaxis = list(title = "Altitude (m.a.s.?)")
+                 xaxis = list(title = "Altitude (m a.s.l.)")#alternatively call it elevation?
                  #plot_bgcolor = "darkgrey" # trying to adjust background color because the yellow points are not well visible - I changed the yellow to be darker in map_module/add_color_scale
           )|>
           add_markers(data = data, # add aggregated datapoints

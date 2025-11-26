@@ -54,8 +54,8 @@ UI_CONFIG <- list(
     "Cover Cyperaceae & Juncaceae" = "cover_cyperaceae_and_juncaceae"
   ),
 
-  time_aspect = c("historic (Years 1884 - 1931)" = "historisch",
-                  "resurvey (Years 2021, 2022)" = "resurvey", 
+  time_aspect = c("historic (years 1884 - 1931)" = "historisch",
+                  "resurvey (years 2021, 2022)" = "resurvey", 
                   "difference" = "delta")
 )
 
