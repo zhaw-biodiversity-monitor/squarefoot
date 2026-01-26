@@ -44,6 +44,12 @@ update_map_points <- function(map_proxy, data, ycol, column_y, threshold, time_a
 
     # organise colour palette
     pal_col <- RColorBrewer::brewer.pal(length(levels(ycol_labs)), "RdYlBu")
+    
+    # Use inverted color scale for temperature
+    if (column_y == "temperaturzahl") {
+      pal_col <- rev(pal_col)
+    }
+    
     pal <- colorFactor(palette = pal_col, domain = ycol_labs)
     pal_legend <- colorFactor(palette = rev(pal_col), domain = ycol_labs) # reverse the colors and labels to have red at the bottom and blue at the top
     
@@ -88,7 +94,7 @@ update_map_points <- function(map_proxy, data, ycol, column_y, threshold, time_a
     
     # organise colour palette
     pal_col <- RColorBrewer::brewer.pal(length(levels(ycol_labs)), "RdYlBu")
-    if (!(column_y %in% c("feuchtigkeit", "reaktion"))) { # Use inverted color scale if not "feuchtigkeit" or "reaktion" because the intuitive colours would not match (feuchtigkeit being red when high, reaction being red when alkaline)
+    if (!(column_y %in% c("feuchtigkeitszahl", "reaktionszahl"))) { # Use inverted color scale if not "feuchtigkeit" or "reaktion" because the intuitive colours would not match (feuchtigkeit being red when high, reaction being red when alkaline)
       pal_col <- rev(pal_col)
     }
     pal <- colorFactor(palette = pal_col, domain = ycol_labs)
@@ -157,16 +163,24 @@ update_map_polygons <- function(map_proxy, data, ycol, n_obs, column_y, n_classe
     # make the color palette
     bivariate_palette <- RColorBrewer::brewer.pal(5, "RdYlBu")
     bivariate_palette <- bivariate_palette[c(1,3,5)] # take blue yellow and red instead of the standard light blue orange and yellow when inputting 3 classes in colorbrewer
+
+    # reverse temperature
+    if (column_y == "temperaturzahl") {
+      bivariate_palette <- rev(bivariate_palette)
+     }
+    
     bivariate_matrix <- bivariate_matrix_alpha(
       bivariate_palette,
       n_classes,
       alpha_range = c(.40, 0.95)
     )
     pal_col <- as.vector(bivariate_matrix)
+
+
     pal <- colorFactor(pal_col, levels = fac_levels, alpha = TRUE)
     
     # create a custom legend (utils)
-    legend_html <- create_legend_delta_polygone(bivariate_matrix, column_y)
+    legend_html <- create_legend_delta_polygone(bivariate_matrix, column_y) 
     
     # make popup label when hovering over the polygons
     data$label <- paste(
@@ -213,7 +227,7 @@ update_map_polygons <- function(map_proxy, data, ycol, n_obs, column_y, n_classe
     bivariate_palette <- RColorBrewer::brewer.pal(5, "RdYlBu")
     bivariate_palette <- bivariate_palette[c(1,3,5)] # take blue yellow and red instead of the standard light blue orange and yellow when inputting 3 classes in colorbrewer
     # Use inverted color scale if not "feuchtigkeit" or "reaktion" because the intuitive colours would not match (feuchtigkeit being red when high, reaction being red when alkaline)
-    if (!(column_y %in% c("feuchtigkeit", "reaktion"))) {
+    if (!(column_y %in% c("feuchtigkeitszahl", "reaktionszahl"))) {
       bivariate_palette <- rev(bivariate_palette)
     }
     bivariate_matrix <- bivariate_matrix_alpha(
@@ -270,7 +284,12 @@ add_color_scale <- function(threshold, input_t, col_y, data, type_col){
     # make colour palette
     pal_col <- RColorBrewer::brewer.pal(length(levels(ycol_labs)), "RdYlBu")
     pal_col[3] <- colorRampPalette(c(pal_col[3], "yellow"))(3)[2] #sandybrown, lightsalmon, gold - custom yellow as it is not very well visible on the white background
-      
+    
+    # Use inverted color scale for temperature
+    if (col_y == "temperaturzahl") {
+      pal_col <- rev(pal_col)
+    }
+    
     # lighten the colour if input is "light"- to make aggregations and non-aggregated data visibly differ enough  
     if (type_col=="light"){
       pal_col <- lighten(pal_col, amount = 0.2)
@@ -294,7 +313,7 @@ add_color_scale <- function(threshold, input_t, col_y, data, type_col){
     #pal_col[pal_col == "#FFFFBF"] <- darken("#FFFFBF", amount = 0.03) #darken just the yellow so it is visible on the white background
      
     # Use inverted color scale if not "Feuchtezahl" or "Reaktionszahl" because the intuitive colours would not match (feuchtigkeit being red when high, reaction being red when alkaline)
-    if (!(col_y %in% c("feuchtigkeit", "reaktion"))) {
+    if (!(col_y %in% c("feuchtigkeitszahl", "reaktionszahl"))) {
       pal_col <- rev(pal_col)
     }
     
