@@ -1,0 +1,14 @@
+In the Square Foot Project, we use a unique historical dataset comprising 580 systematically surveyed vegetation plots (0.09 m²) in grasslands across Switzerland. These plots were originally surveyed between 1884 and 1931 using consistent methods (Riedel et al., 2023). By resurveying these plots, we were able to quantify long-term changes in plant diversity and composition.
+
+Further information about the Projekt [https://www.zhaw.ch/en/lsfm/institutes-centres/iunr/geoecology/vegetation-ecology/square-foot-project]
+
+Further Information about the projekt [http://www.zhaw.ch/squarefoot]
+Publication [https://doi.org/10.1111/gcb.70529]
+
+
+
+Im Rahmen des Square Foot Project verwenden wir einen einzigartigen historischen Datensatz, der 580 systematisch untersuchte Vegetationsflächen (0.09 m²) in Graslandschaften in der ganzen Schweiz umfasst. Diese Flächen wurden ursprünglich zwischen 1884 und 1931 mit einer einheitlichen Methode untersucht (Riedel et al., 2023). Durch Wiederholungsaufnahmen dieser Plots konnten wir langfristige Veränderungen in der Pflanzenvielfalt und -zusammensetzung quantifizieren.
+
+Weiterführende Inforamtionen zum Projekt [http://www.zhaw.ch/squarefoot]
+
+Publikation [https://doi.org/10.1111/gcb.70529]
