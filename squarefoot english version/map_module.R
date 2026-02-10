@@ -44,6 +44,12 @@ update_map_points <- function(map_proxy, data, ycol, column_y, threshold, time_a
 
     # organise colour palette
     pal_col <- RColorBrewer::brewer.pal(length(levels(ycol_labs)), "RdYlBu")
+    
+    # Use inverted color scale for temperature
+    if (column_y == "temperature") {
+      pal_col <- rev(pal_col)
+    }
+    
     pal <- colorFactor(palette = pal_col, domain = ycol_labs)
     pal_legend <- colorFactor(palette = rev(pal_col), domain = ycol_labs) # reverse the colors and labels to have red at the bottom and blue at the top
     
@@ -157,6 +163,12 @@ update_map_polygons <- function(map_proxy, data, ycol, n_obs, column_y, n_classe
     # make the color palette
     bivariate_palette <- RColorBrewer::brewer.pal(5, "RdYlBu")
     bivariate_palette <- bivariate_palette[c(1,3,5)] # take blue yellow and red instead of the standard light blue orange and yellow when inputting 3 classes in colorbrewer
+    
+    # reverse temperature
+    if (column_y == "temperature") {
+      bivariate_palette <- rev(bivariate_palette)
+    }
+    
     bivariate_matrix <- bivariate_matrix_alpha(
       bivariate_palette,
       n_classes,
@@ -271,6 +283,11 @@ add_color_scale <- function(threshold, input_t, col_y, data, type_col){
     pal_col <- RColorBrewer::brewer.pal(length(levels(ycol_labs)), "RdYlBu")
     pal_col[3] <- colorRampPalette(c(pal_col[3], "yellow"))(3)[2] #sandybrown, lightsalmon, gold - custom yellow as it is not very well visible on the white background
       
+    # Use inverted color scale for temperature
+    if (col_y == "temperature") {
+      pal_col <- rev(pal_col)
+    }
+    
     # lighten the colour if input is "light"- to make aggregations and non-aggregated data visibly differ enough  
     if (type_col=="light"){
       pal_col <- lighten(pal_col, amount = 0.2)

@@ -11,10 +11,8 @@ source("data_module.R")
 # library(magrittr)
 # library(RColorBrewer)
 
-# set up publication in shiny.io server
-#rsconnect::setAccountInfo(name='yahe55', token='AB31184339DED9A0C60A37741C8527F9', secret='hUBnmpjMhA+M7VvbgqdQsaQmWeYvIec80jRQ8Yox')
-#library(rsconnect)
-#rsconnect::deployApp('C:/Users/yaelh/OneDrive - ZHAW/Dashboard Squarefoot Projekt/Squarefoot/Squarefoot code/squarefoot/')
+# publication in shiny.io server
+# https://yahe55.shinyapps.io/squarefootenglish/
 
 # Load initial data from .gpkg file
 geodata <- load_geodata()

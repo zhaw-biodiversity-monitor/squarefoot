@@ -5,7 +5,7 @@ account: yahe55
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 16132687
-bundleId: 11231753
+bundleId: 11510281
 url: https://yahe55.shinyapps.io/squarefootenglish/
 version: 1
 asMultiple: FALSE
