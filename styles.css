@@ -1,0 +1,27 @@
+/* css styles */
+
+
+#coverimage{
+    background-size: cover;
+    background-image: url('images/mountains-4343542_1280.jpg');
+}
+
+#kontakt{
+  display: flex;
+}
+
+#kontakt>div:first-child{
+  padding-right: 5em;
+}
+
+
+#wip > div > div> p{
+  padding-top: 20vh;
+  padding-bottom: 20vh;
+  font-size: x-large;
+  
+}
+
+.keywords{
+  display: none;
+}

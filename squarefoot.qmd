@@ -10,7 +10,8 @@
 
 Im Rahmen des Square Foot Project verwenden wir einen einzigartigen historischen Datensatz, der 580 systematisch untersuchte Vegetationsflächen (0.09 m²) in Graslandschaften in der ganzen Schweiz umfasst. Diese Flächen wurden ursprünglich zwischen 1884 und 1931 mit einer einheitlichen Methode untersucht (Riedel et al., 2023). Durch Wiederholungsaufnahmen dieser Plots konnten wir langfristige Veränderungen in der Pflanzenvielfalt und -zusammensetzung quantifizieren.
 
-[**Weiterführende Inforamtionen zum Projekt**] (http://www.zhaw.ch/squarefoot)
-[**Publikation**] (https://doi.org/10.1111/gcb.70529)
+[**Weiterführende Inforamtionen zum Projekt**](http://www.zhaw.ch/squarefoot)
+
+[**Publikation**](https://doi.org/10.1111/gcb.70529)
 
 

@@ -16,7 +16,7 @@ website:
         text: "Grasland"
       - href: zeitreihen.qmd
         text: "Zeitreihen"
-      - href: Squarefoot.qmd
+      - href: squarefoot.qmd
         text: "Squarefoot"
 
 metadata:
