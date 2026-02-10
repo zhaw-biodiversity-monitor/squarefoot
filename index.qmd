@@ -1,0 +1,62 @@
+
+
+
+:::{layout-nrow=1 .column-page}
+
+![](images/D72_0587.jpg)
+
+![](images/JD205470.jpg)
+
+![](images/JD203137.jpg)
+
+![](images/JD191687.jpg)
+:::
+
+Willkommen auf dem **interaktiven Informationsportal zur Pflanzendiversität und Vegetation der Schweiz**.
+Es wird betrieben von der [**Forschungsgruppe Vegetationsökologie**](https://www.zhaw.ch/de/lsfm/institute-zentren/iunr/geooekologie/vegetationsoekologie/) der Zürcher Hochschule für Angewandte Wissenschaften (ZHAW) in Zusammenarbeit mit [**Info Flora**](https://www.infoflora.ch/de/) und den jeweiligen Datenlieferant:innen. In diesem Sinne ergänzt **vegetation.ch** die drei Portale zur [Gefässpflanzenflora](https://www.infoflora.ch/de/), [Moosflora](https://www.swissbryophytes.ch/index.php/de/) und [Flechtenflora](https://swisslichens.wsl.ch/de/) der Schweiz.
+
+Vegetation wird mittels sogenannten **«Vegetationsaufnahmen»** auf definierten Probeflächen von typischerweise 0.1--400 m^2^ Fläche erfasst. Diese enthalten Informationen zu **sämtlichen vorkommenden Gefässpflanzenarten sowie oft auch Moosen und Flechten, ihren Mengenanteilen, sowie vor Ort erhobenen Umweltparametern**. Damit ist der Informationsgehalt von Vegetationsaufnahmen erheblich grösser und erlaubt weitergehende Analysen als Beobachtungsdaten von Einzelarten. Zum Beispiel können Biodiversitätsmasse oder mittlere ökologische Zeigerwerteermittelt und ihre Veränderungen in Raum und Zeit analysiert werden.
+
+
+Die Schweiz verfügt über einen **grossen Schatz von historischen und aktuellen Vegetationsaufnahmen**, der bislang nicht in einer zentralen Datenbank verfügbar ist, noch umfassend im Hinblick auf die Biodiversitätsveränderungen und daraus resultierende Strategien zum **Schutz der Biodiversität** ausgewertet wurde. Das Portal vegetation.ch zielt darauf ab, die relevanten «Stakeholder» im Bereich Vegetation zusammenzubringen, um diesen Schatz zu heben.
+
+Die Seite befindet sich im Aufbau. Derzeit existieren drei Unterseiten:
+
+- [Vegetationsdatenbank](database.qmd): Hier kann man den Inhalt der im Entstehen begriffenen nationalen Vegetationsdatenbank der Schweiz erkunden.
+- [Grasland](grasland.qmd): Hier kann man die Eigenschaften des Graslands der Schweiz im 21. Jahrhundert erkunden, basierend auf einem repräsentativen Datensatz des nationalen Biodiversitätsmonitorings BDM
+- [Zeitreihen](zeitreihen.qmd): Hier finden sich Daten von unterschiedlichen Wiederholungsstudien («Resurveys»). Die Seite zeigt, wie sich die Vegetation jeweils über die Jahre verändert hat.
+
+Weitere Unterseiten sind für die Zukunft angedacht, z.B.
+
+-   **Quadratfuss-Projekt:** Hier werden sich bald die Daten und Ergebnisse des [SNF-Projektes zum Wandel des Graslandes in der Schweiz zwischen 1900 und 2020](https://www.zhaw.ch/de/lsfm/institute-zentren/iunr/geooekologie/vegetationsoekologie/squarefoot/) visualisieren lassen
+
+
+-   **Vegetationsklassifikation:** Hier würden wir gerne Informationen und Tools zu den Vegetationstypen der Schweiz bereitstellen, einschliesslich eines modernen Expertensystems, das die automatische Klassifikation hochgeladener Vegetationsaufnahmen erlaubt
+
+-   **Citizen Science:** Wie Info Flora, wollen wir künftig interessierte Ehrenamtler:innen beim Aufbereiten historischer und beim Erheben neuer Vegetationsdaten einbeziehen.
+
+Künftig sind auch weitere **Sprachversionen** (Englisch, Französisch, Italienisch) angedacht und ein **erweitertes Informationsangebot** samt Downloadmöglichkeit von Daten und Publikationen (soweit diese «open access» sind). Bis das so weit ist, bitten wir um Geduld, freuen uns aber über konstruktive Rückmeldungen.
+
+Die Erstellung von vegetation.ch wurde ermöglicht durch das IUNR-Handlungsfeld «Biodiversitäts Dashboard» und das SNF-Projekt 408240_226738 / 1 "VegChangeCH -- A comprehensive picture of anthropogenic changes in the vegetation of Switzerland".
+
+<div id="kontakt">
+
+<div>
+Kontakt: 
+</div>
+
+<div>
+Prof. Dr. Jürgen Dengler\
+Forschungsgruppe Vegetationsökologie\
+Institut für Umwelt und natürliche Ressourcen (IUNR)\
+Züricher Hochschule für Angewandte Wissenschaften (ZHAW)\
+Grüentalstr. 14\
+8820 Wädenswil, SCHWEIZ\
+[Mail](mailto:juergen.dengler@zhaw.ch,seih@zhaw.ch?subject=Vegetation.ch)
+</div>
+
+
+</div>
+
+
+
