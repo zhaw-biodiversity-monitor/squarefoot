@@ -40,7 +40,7 @@ UI_CONFIG <- list(
     "Funktionale Diversität Samengewicht (0-1)" = "funktionale_diversita0et_samengewicht",
     "Funktionale Diversität Höhe (0-1)" = "funktionale_diversita0et_ho0ehe",
     "Mittlere Temperaturzahl (1–5)" = "temperaturzahl",
-    "Mittlerer Nährstoffzahl (1–5)" = "na0ehrstoffzahl",    
+    "Mittlere Nährstoffzahl (1–5)" = "na0ehrstoffzahl",    
     "Mittlere Reaktionszahl (1–5)" = "reaktionszahl",    
     "Mittlere Feuchtigkeitszahl (1–5)" = "feuchtigkeitszahl",
     "Mittlere Lichtzahl (1–5)" = "licht",    

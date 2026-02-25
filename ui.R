@@ -25,7 +25,7 @@ shinyUI(fluidPage(
       
       selectInput( # variable to display panel
         "column_y", # name used inside the code - input$column_y used
-        "Trend von", # displayed in app
+        "Variable", # displayed in app
         UI_CONFIG$column_options # options to choose
       ),
       
